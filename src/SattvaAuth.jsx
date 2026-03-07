@@ -511,11 +511,15 @@ function SignupForm({ onSuccess }) {
   if (Object.keys(e).length) { setErrors(e); return; }
   setLoading(true);
 
-  const { error } = await supabase.auth.signUp({
-    email: form.email,
-    password: form.password,
-    options: { data: { name: form.name } }
-  });
+ const { error } = await supabase.auth.signUp({
+  email: form.email,
+  password: form.password,
+  options: {
+    data: {
+      name: form.name  // ← this must be here
+    }
+  }
+});
 
   setLoading(false);
   if (error) { console.error(error); alert(error.message); return; }
