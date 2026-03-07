@@ -3,6 +3,8 @@ import SattvaLanding from './SattvaLanding'
 import SattvaAuth from './SattvaAuth'
 import HowItWorks from './HowItWorks'
 import About from './About'
+import NotFound from './NotFound'
+
 
 export default function App() {
   return (
@@ -13,6 +15,7 @@ export default function App() {
         <Route path="/login" element={<SattvaAuth defaultTab="login" />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/about" element={<About />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
