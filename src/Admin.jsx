@@ -237,7 +237,7 @@ function UsersTab({ data, loading }){
 
   const filtered = data.filter(r =>
     r.email?.toLowerCase().includes(search.toLowerCase()) ||
-    (r.raw_user_meta_data?.name || '').toLowerCase().includes(search.toLowerCase())
+    (r.raw_user_meta_data?.name || r.raw_user_meta_data?.full_name || r.email?.split('@')[0] || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return(
@@ -286,7 +286,7 @@ function UsersTab({ data, loading }){
           )}
           {!loading && filtered.map(r=>(
             <tr key={r.id}>
-              <td><div className="td-name">{r.raw_user_meta_data?.name || '—'}</div></td>
+              <td><div className="td-name">{r.raw_user_meta_data?.name || r.raw_user_meta_data?.full_name || r.email?.split('@')[0] || '—'}</div></td>
               <td><div className="td-email">{r.email}</div></td>
               <td>
                 <span className={`status-badge ${r.email_confirmed_at?'confirmed':'pending'}`}>
