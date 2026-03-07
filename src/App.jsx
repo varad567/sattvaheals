@@ -6,6 +6,7 @@ import About from './About'
 import NotFound from './NotFound'
 import Team from './Team'
 import Consult from './Consult'
+import Privacy from './Privacy'
 
 
 export default function App() {
@@ -20,6 +21,8 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
         <Route path="/team" element={<Team />} />
         <Route path="/consult" element={<Consult />} />
+        <Route path="/privacy" element={<Privacy />} />
+
       </Routes>
     </BrowserRouter>
   )
