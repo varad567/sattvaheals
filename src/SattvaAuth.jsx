@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
+import { supabase } from './supabase'
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');`;
 
 const css = `
@@ -506,12 +506,21 @@ function SignupForm({ onSuccess }) {
     return e;
   };
 
-  const handleSubmit = () => {
-    const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
-    setLoading(true);
-    setTimeout(() => { setLoading(false); onSuccess(form.name); }, 1800);
-  };
+  const handleSubmit = async () => {
+  const e = validate();
+  if (Object.keys(e).length) { setErrors(e); return; }
+  setLoading(true);
+
+  const { error } = await supabase.auth.signUp({
+    email: form.email,
+    password: form.password,
+    options: { data: { name: form.name } }
+  });
+
+  setLoading(false);
+  if (error) { console.error(error); alert(error.message); return; }
+  onSuccess(form.name);
+};
 
   return (
     <div style={{ animation: 'fadeUp 0.6s ease both' }}>
