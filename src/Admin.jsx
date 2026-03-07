@@ -109,6 +109,63 @@ const css = `
   .search-input:focus { border-color:rgba(168,204,224,0.25); }
   .search-input::placeholder { color:rgba(139,175,196,0.2); }
 
+  /* MAIL TAB */
+  .mail-wrap { max-width: 720px; }
+  .mail-title { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; color:var(--pearl); margin-bottom:6px; }
+  .mail-title em { font-style:italic; color:var(--moon); }
+  .mail-sub { font-size:13px; color:var(--pearl-dim); margin-bottom:32px; line-height:1.6; }
+  .mail-setup-box { background:rgba(226,194,125,0.05); border:1px solid rgba(226,194,125,0.15); padding:20px 24px; margin-bottom:28px; border-radius:1px; }
+  .mail-setup-box p { font-size:12px; color:var(--gold); line-height:1.7; }
+  .mail-setup-box a { color:var(--moon); }
+  .mail-field { margin-bottom:18px; }
+  .mail-label { display:block; font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:var(--moon-dim); margin-bottom:8px; font-weight:500; }
+  .mail-input { width:100%; padding:12px 14px; background:rgba(6,14,26,0.6); border:1px solid rgba(168,204,224,0.1); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:13px; outline:none; border-radius:1px; transition:border-color 0.3s; }
+  .mail-input:focus { border-color:rgba(168,204,224,0.3); }
+  .mail-input::placeholder { color:rgba(139,175,196,0.25); }
+  .mail-textarea { width:100%; padding:14px; background:rgba(6,14,26,0.6); border:1px solid rgba(168,204,224,0.1); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:13px; outline:none; border-radius:1px; transition:border-color 0.3s; resize:vertical; min-height:180px; line-height:1.7; }
+  .mail-textarea:focus { border-color:rgba(168,204,224,0.3); }
+  .mail-textarea::placeholder { color:rgba(139,175,196,0.25); }
+  .mail-quick { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .mail-quick-btn { padding:6px 14px; background:rgba(13,31,53,0.6); border:1px solid rgba(168,204,224,0.08); color:var(--pearl-dim); font-size:11px; font-family:'Outfit',sans-serif; cursor:pointer; border-radius:1px; transition:all 0.3s; letter-spacing:0.5px; }
+  .mail-quick-btn:hover { border-color:rgba(168,204,224,0.25); color:var(--moon); }
+  .mail-send-btn { padding:13px 36px; background:linear-gradient(135deg,rgba(168,204,224,0.15),rgba(168,204,224,0.05)); border:1px solid rgba(168,204,224,0.3); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:11px; font-weight:500; letter-spacing:2.5px; text-transform:uppercase; cursor:pointer; transition:all 0.4s; border-radius:1px; position:relative; overflow:hidden; }
+  .mail-send-btn:hover { border-color:var(--moon); color:var(--moon); }
+  .mail-send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .mail-alert { padding:12px 16px; border-radius:1px; font-size:13px; margin-bottom:20px; }
+  .mail-alert.success { background:rgba(110,203,160,0.08); border:1px solid rgba(110,203,160,0.2); color:#6ECBA0; }
+  .mail-alert.error { background:rgba(224,112,112,0.08); border:1px solid rgba(224,112,112,0.2); color:#E07070; }
+  .mail-from-note { font-size:11px; color:var(--pearl-dim); margin-top:12px; letter-spacing:0.5px; }
+  .mail-from-note span { color:var(--moon-dim); }
+
+  /* SETTINGS TAB */
+  .settings-wrap { max-width: 680px; }
+  .settings-section { margin-bottom: 40px; }
+  .settings-section-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--pearl); margin-bottom:4px; }
+  .settings-section-title em { font-style:italic; color:var(--moon); }
+  .settings-section-sub { font-size:12px; color:var(--pearl-dim); margin-bottom:20px; line-height:1.6; }
+  .settings-section-sub a { color:var(--moon); }
+  .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .settings-field { margin-bottom:0; }
+  .settings-label { display:block; font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:var(--moon-dim); margin-bottom:8px; font-weight:500; }
+  .settings-input { width:100%; padding:11px 14px; background:rgba(6,14,26,0.6); border:1px solid rgba(168,204,224,0.1); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:13px; outline:none; border-radius:1px; transition:border-color 0.3s; }
+  .settings-input:focus { border-color:rgba(168,204,224,0.3); }
+  .settings-input::placeholder { color:rgba(139,175,196,0.2); font-size:12px; }
+  .settings-input.readonly { color:var(--pearl-dim); cursor:default; }
+  .settings-save-btn { margin-top:16px; padding:11px 32px; background:linear-gradient(135deg,rgba(168,204,224,0.15),rgba(168,204,224,0.05)); border:1px solid rgba(168,204,224,0.3); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; border-radius:1px; }
+  .settings-save-btn:hover { border-color:var(--moon); color:var(--moon); }
+  .settings-saved { display:inline-flex; align-items:center; gap:8px; margin-left:14px; font-size:12px; color:var(--green); opacity:0; transition:opacity 0.4s; }
+  .settings-saved.show { opacity:1; }
+  .settings-divider { width:100%; height:1px; background:rgba(168,204,224,0.06); margin:32px 0; }
+  .settings-status { display:inline-flex; align-items:center; gap:6px; font-size:11px; letter-spacing:1px; }
+  .status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .status-dot.green { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .status-dot.red { background:var(--red); }
+  .settings-info-row { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:rgba(6,14,26,0.4); border:1px solid rgba(168,204,224,0.06); margin-bottom:8px; border-radius:1px; }
+  .sir-label { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--moon-dim); }
+  .sir-value { font-size:12px; color:var(--pearl-dim); font-family:monospace; }
+  .sir-value.active { color:var(--green); }
+  .sir-value.missing { color:var(--red); }
+
   @media(max-width:768px){
     .stats-row{grid-template-columns:1fr 1fr;}
     .admin-content{padding:16px;}
@@ -232,6 +289,204 @@ function ConsultationsTab({ data, loading, onUpdate, onExport }){
   );
 }
 
+// ── Settings Tab ─────────────────────────────────────────
+function SettingsTab({ settings, onSave }){
+  const [form, setForm] = useState({ ...settings });
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    onSave(form);
+    setSaved(true);
+    setTimeout(()=>setSaved(false), 2500);
+  };
+
+  const ejsReady = form.ejsServiceId && form.ejsTemplateId && form.ejsPublicKey;
+
+  return (
+    <div className="settings-wrap">
+      <div className="settings-section">
+        <div className="settings-section-title">Email <em>Settings</em></div>
+        <p className="settings-section-sub">
+          Uses <a href="https://emailjs.com" target="_blank" rel="noreferrer">EmailJS</a> (free — 200 emails/month) to send from your Gmail.<br/>
+          Setup: emailjs.com → Add Service (Gmail) → Create Template → copy the 3 keys below.<br/>
+          Template must have variables: <code style={{background:'rgba(168,204,224,0.08)',padding:'1px 6px',fontSize:11}}>{'{{to_email}} {{subject}} {{message}} {{from_name}}'}</code>
+        </p>
+
+        <div className="settings-info-row">
+          <span className="sir-label">EmailJS Status</span>
+          {ejsReady
+            ? <span className="settings-status"><span className="status-dot green"/>  <span className="sir-value active">Configured ✓</span></span>
+            : <span className="settings-status"><span className="status-dot red"/>  <span className="sir-value missing">Not configured</span></span>
+          }
+        </div>
+
+        <div className="settings-grid" style={{marginTop:16}}>
+          <div className="settings-field">
+            <label className="settings-label">Service ID</label>
+            <input className="settings-input" placeholder="service_xxxxxxx"
+              value={form.ejsServiceId||''} onChange={e=>setForm({...form,ejsServiceId:e.target.value})}/>
+          </div>
+          <div className="settings-field">
+            <label className="settings-label">Template ID</label>
+            <input className="settings-input" placeholder="template_xxxxxxx"
+              value={form.ejsTemplateId||''} onChange={e=>setForm({...form,ejsTemplateId:e.target.value})}/>
+          </div>
+          <div className="settings-field" style={{gridColumn:'1/-1'}}>
+            <label className="settings-label">Public Key</label>
+            <input className="settings-input" placeholder="xxxxxxxxxxxxxxxxxxxx"
+              value={form.ejsPublicKey||''} onChange={e=>setForm({...form,ejsPublicKey:e.target.value})}/>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-divider"/>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Platform <em>Info</em></div>
+        <p className="settings-section-sub">Read-only — your current Supabase connection details.</p>
+        {[
+          {label:'Supabase URL', value:'https://krpwzbjiipsvbvjqsmfg.supabase.co'},
+          {label:'Supabase Status', value:'Connected ✓', active:true},
+          {label:'Auth Provider', value:'Email + Google OAuth'},
+          {label:'Domain', value:'sattvaheals.in'},
+        ].map(r=>(
+          <div className="settings-info-row" key={r.label}>
+            <span className="sir-label">{r.label}</span>
+            <span className={`sir-value ${r.active?'active':''}`}>{r.value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="settings-divider"/>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Admin <em>Password</em></div>
+        <p className="settings-section-sub">To change the admin password, update <code style={{background:'rgba(168,204,224,0.08)',padding:'1px 6px',fontSize:11}}>ADMIN_PASSWORD</code> in <code style={{background:'rgba(168,204,224,0.08)',padding:'1px 6px',fontSize:11}}>src/Admin.jsx</code> line 6, then push to GitHub.</p>
+        <div className="settings-info-row">
+          <span className="sir-label">Current password</span>
+          <span className="sir-value">••••••••••••••• (set in code)</span>
+        </div>
+      </div>
+
+      <button className="settings-save-btn" onClick={handleSave}>Save Settings</button>
+      <span className={`settings-saved ${saved?'show':''}`}>✓ Saved to browser</span>
+    </div>
+  );
+}
+
+// ── Mail Tab ──────────────────────────────────────────────
+function MailTab({ users, consultations, settings, onOpenSettings }){
+  const [to, setTo] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [alert, setAlert] = useState(null);
+
+  const { ejsServiceId, ejsTemplateId, ejsPublicKey } = settings;
+  const ejsReady = ejsServiceId && ejsTemplateId && ejsPublicKey;
+
+  const QUICK_TEMPLATES = [
+    { label: 'Consultation confirmed', subject: 'Your SATTVA consultation is confirmed', body: `Namaste,\n\nYour consultation request has been confirmed. Our Jyotishi will connect with you within 2 working days.\n\nPlease keep your birth details (date, time, place) ready for the session.\n\nWith light,\nSATTVA HEALS Team\nsattvaheals.in` },
+    { label: 'Payment instructions', subject: 'Payment details — SATTVA consultation', body: `Namaste,\n\nThank you for booking with SATTVA HEALS. Here are your payment details:\n\nAmount: ₹899\nUPI: payment@sattvaheals.in\n\nKindly share the payment screenshot to confirm your booking.\n\nWith light,\nSATTVA HEALS Team` },
+    { label: 'Session reminder', subject: 'Reminder — Your SATTVA session is tomorrow', body: `Namaste,\n\nA gentle reminder that your consultation is scheduled for tomorrow. Please keep your birth details ready.\n\nIf you need to reschedule, reply to this email.\n\nWith light,\nSATTVA HEALS Team\nsattvaheals.in` },
+    { label: 'Follow up', subject: 'Following up on your SATTVA journey', body: `Namaste,\n\nWe hope your healing journey has been going well since your session.\n\nIf you have any questions about the remedies or practices suggested, please feel free to reply to this email.\n\nWith light,\nSATTVA HEALS Team` },
+  ];
+
+  const sendMail = async () => {
+    if (!to || !subject || !message) { setAlert({type:'error',msg:'Please fill all fields.'}); return; }
+    if (!ejsReady) { setAlert({type:'error',msg:'EmailJS not configured. Go to Settings tab to add your keys.'}); return; }
+    setSending(true); setAlert(null);
+    try {
+      const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: ejsServiceId,
+          template_id: ejsTemplateId,
+          user_id: ejsPublicKey,
+          template_params: { to_email:to, subject, message, from_name:'SATTVA HEALS', reply_to:'support@sattvaheals.in' }
+        })
+      });
+      if (res.ok) {
+        setAlert({type:'success', msg:`✓ Email sent to ${to}`});
+        setTo(''); setSubject(''); setMessage('');
+      } else {
+        const text = await res.text();
+        setAlert({type:'error', msg:`Failed: ${text}`});
+      }
+    } catch(e) {
+      setAlert({type:'error', msg:`Error: ${e.message}`});
+    }
+    setSending(false);
+  };
+
+  const allEmails = [...new Set([
+    ...consultations.map(c=>c.email).filter(Boolean),
+    ...users.map(u=>u.email).filter(Boolean),
+  ])].sort();
+
+  return (
+    <div className="mail-wrap">
+      <div className="mail-title">Send <em>Mail</em></div>
+      <p className="mail-sub">Send emails directly to users or consultation bookings.</p>
+
+      {!ejsReady && (
+        <div className="mail-setup-box" style={{cursor:'pointer'}} onClick={onOpenSettings}>
+          <p>
+            <strong style={{color:'var(--gold)'}}>⚙ EmailJS not configured yet.</strong><br/>
+            Click here or go to the <strong>Settings tab</strong> to add your EmailJS Service ID, Template ID and Public Key. Takes 5 minutes. Free.
+          </p>
+        </div>
+      )}
+
+      {ejsReady && (
+        <div className="settings-info-row" style={{marginBottom:20}}>
+          <span className="sir-label">EmailJS</span>
+          <span className="settings-status"><span className="status-dot green"/> <span className="sir-value active">Ready to send ✓</span></span>
+        </div>
+      )}
+
+      {alert && <div className={`mail-alert ${alert.type}`}>{alert.msg}</div>}
+
+      <div className="mail-field">
+        <label className="mail-label">To</label>
+        <input className="mail-input" placeholder="user@email.com" value={to}
+          onChange={e=>setTo(e.target.value)} list="email-suggestions"/>
+        <datalist id="email-suggestions">
+          {allEmails.map(e=><option key={e} value={e}/>)}
+        </datalist>
+      </div>
+
+      <div className="mail-field">
+        <label className="mail-label">Quick Templates</label>
+        <div className="mail-quick">
+          {QUICK_TEMPLATES.map(t=>(
+            <button key={t.label} className="mail-quick-btn"
+              onClick={()=>{ setSubject(t.subject); setMessage(t.body); }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mail-field">
+        <label className="mail-label">Subject</label>
+        <input className="mail-input" placeholder="Email subject" value={subject} onChange={e=>setSubject(e.target.value)}/>
+      </div>
+
+      <div className="mail-field">
+        <label className="mail-label">Message</label>
+        <textarea className="mail-textarea" placeholder="Write your message…" value={message} onChange={e=>setMessage(e.target.value)}/>
+      </div>
+
+      <button className="mail-send-btn" onClick={sendMail} disabled={sending || !ejsReady}>
+        {sending ? 'Sending…' : 'Send Email'}
+      </button>
+      {ejsReady && <div className="mail-from-note" style={{marginTop:10}}>Via EmailJS · replies go to your Gmail</div>}
+    </div>
+  );
+}
+
 function UsersTab({ data, loading }){
   const [search, setSearch] = useState('');
 
@@ -313,6 +568,21 @@ export default function Admin(){
   const [users, setUsers] = useState([]);
   const [loadingC, setLoadingC] = useState(true);
   const [loadingU, setLoadingU] = useState(true);
+
+  // Settings — persisted in localStorage
+  const [settings, setSettings] = useState(()=>{
+    try {
+      const saved = localStorage.getItem('sattva_admin_settings');
+      return saved ? JSON.parse(saved) : { ejsServiceId:'', ejsTemplateId:'', ejsPublicKey:'' };
+    } catch(e) {
+      return { ejsServiceId:'', ejsTemplateId:'', ejsPublicKey:'' };
+    }
+  });
+
+  const handleSaveSettings = (newSettings) => {
+    setSettings(newSettings);
+    try { localStorage.setItem('sattva_admin_settings', JSON.stringify(newSettings)); } catch(e){}
+  };
 
   // Load data on auth
   useEffect(()=>{
@@ -414,6 +684,12 @@ export default function Admin(){
             Users
             <span className="tab-count">{users.length}</span>
           </button>
+          <button className={`admin-tab ${tab==='mail'?'active':''}`} onClick={()=>setTab('mail')}>
+            Mail
+          </button>
+          <button className={`admin-tab ${tab==='settings'?'active':''}`} onClick={()=>setTab('settings')}>
+            ⚙ Settings
+          </button>
         </div>
 
         <div className="admin-content">
@@ -428,6 +704,17 @@ export default function Admin(){
             )}
             {tab==='users' && (
               <UsersTab data={users} loading={loadingU}/>
+            )}
+            {tab==='mail' && (
+              <MailTab
+                users={users}
+                consultations={consultations}
+                settings={settings}
+                onOpenSettings={()=>setTab('settings')}
+              />
+            )}
+            {tab==='settings' && (
+              <SettingsTab settings={settings} onSave={handleSaveSettings}/>
             )}
           </div>
         </div>
