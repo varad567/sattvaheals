@@ -10,6 +10,7 @@ import Consult from './Consult'
 import Privacy from './Privacy'
 import Admin from './Admin'
 import NotFound from './NotFound'
+import ResetPassword from './ResetPassword'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   )
