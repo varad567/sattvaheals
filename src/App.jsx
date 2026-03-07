@@ -7,7 +7,7 @@ import NotFound from './NotFound'
 import Team from './Team'
 import Consult from './Consult'
 import Privacy from './Privacy'
-import { Analytics } from "@vercel/analytics/next"
+
 
 
 export default function App() {
