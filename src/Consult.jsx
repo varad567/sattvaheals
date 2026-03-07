@@ -283,7 +283,7 @@ function ConsultForm(){
     <div className="form-success">
       <span className="fs-icon">🌙</span>
       <div className="fs-title">Request <em>received.</em></div>
-      <p className="fs-body">Varad will review your message and respond within 2 working days to confirm your appointment details.</p>
+      <p className="fs-body">Our team will review your message and respond within 2 working days to confirm your appointment details.</p>
       <div className="fs-note">Check your inbox · {form.email}</div>
     </div>
   );
@@ -291,7 +291,7 @@ function ConsultForm(){
   return(
     <>
       <div className="form-title">Book a <em>consultation.</em></div>
-      <p className="form-sub">Select your session type, share your details, and Varad will reach out within 2 working days.</p>
+      <p className="form-sub">Select your session type, share your details, and our team will reach out within 2 working days.</p>
 
       {/* Consultation type selector */}
       <div style={{marginBottom:24}}>
@@ -361,7 +361,7 @@ export default function Consult(){
       <section className="hero">
         <div className="eyebrow"><div className="ey-line"/><span className="ey-text">Book a Consultation</span><div className="ey-line"/></div>
         <h1 className="hero-title">One session.<br /><em>Your entire chart.</em></h1>
-        <p className="hero-sub">A personal consultation with Varad — your birth chart read in full, your Moon afflictions identified, your remedy path laid out. 10,000+ consultations. One for you.</p>
+        <p className="hero-sub">A personal consultation with Varad — your birth chart read in full, your Moon afflictions identified, your remedy path laid out. Built on 10,000+ consultations. One session for you.</p>
       </section>
 
       <Arch to="#0D1F35"/>
@@ -371,7 +371,7 @@ export default function Consult(){
         <div className="types-inner">
           <div className="reveal">
             <span className="sec-label">What's Available</span>
-            <h2 className="sec-title">Three ways to<br /><em>work with Varad.</em></h2>
+            <h2 className="sec-title">Three ways to<br /><em>begin your journey.</em></h2>
           </div>
           <div className="types-grid">
             {consultTypes.map((t,i)=>(
@@ -427,7 +427,7 @@ export default function Consult(){
               <div className="expect-title">What to expect<br /><em>after you submit.</em></div>
               <div className="expect-steps">
                 {[
-                  {n:'01',t:'Your request arrives',b:"Varad reviews your message, your session type, and what you've shared. Every request is read personally."},
+                  {n:'01',t:'Your request arrives',b:"Our team reviews your message, your session type, and what you've shared. Every request is read personally."},
                   {n:'02',t:'Confirmation within 2 days',b:'You receive an email confirming your appointment date, time, and session details. Payment link included.'},
                   {n:'03',t:'Share your birth details',b:'Date, time and place of birth are collected privately before your session — used only for your chart.'},
                   {n:'04',t:'Your consultation',b:'A focused, personal session. Your chart read. Your Moon understood. Your remedy path laid out clearly.'},
