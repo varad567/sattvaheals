@@ -1,1483 +1,1418 @@
 import { useState, useEffect, useRef } from "react";
 
 const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Cinzel:wght@400;500;600;700&family=Jost:wght@200;300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');
 `;
 
-const styles = `
+const css = `
   :root {
-    --saffron: #D4780A;
-    --saffron-light: #F0A030;
-    --saffron-glow: #E8901A;
-    --navy: #0E1B2E;
-    --navy-mid: #162540;
-    --navy-light: #1E3055;
-    --ivory: #F7EDD8;
-    --ivory-light: #FDF6EC;
-    --ivory-dim: #E8D9BC;
-    --gold: #C8962A;
-    --gold-light: #E8B84B;
-    --terracotta: #8B3A2A;
-    --sage: #2D5A3D;
-    --text-light: #F0E6D0;
-    --text-dim: #A89070;
+    --abyss:     #060E1A;
+    --deep:      #0D1F35;
+    --surface:   #112840;
+    --mid:       #1A3A55;
+    --moon:      #A8CCE0;
+    --moon-dim:  #6B95AE;
+    --gold:      #E2C27D;
+    --gold-dim:  #B89A55;
+    --pearl:     #D8EEF8;
+    --pearl-dim: #8BAFC4;
+    --glow:      rgba(168,204,224,0.12);
+    --arch:      rgba(168,204,224,0.06);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
 
   body {
-    background: var(--navy);
-    color: var(--ivory);
-    font-family: 'Jost', sans-serif;
+    background: var(--abyss);
+    color: var(--pearl);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
     overflow-x: hidden;
   }
 
-  .cinzel { font-family: 'Cinzel', serif; }
-  .cormorant { font-family: 'Cormorant Garamond', serif; }
-
-  /* ─── STARS CANVAS ─── */
-  #stars-canvas {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
+  /* Noise texture overlay */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 998; opacity: 0.4;
   }
 
-  /* ─── NAV ─── */
+  /* ── CURSOR ── */
+  .cursor {
+    width: 8px; height: 8px;
+    background: var(--moon);
+    border-radius: 50%;
+    position: fixed; pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: left 0.06s, top 0.06s;
+  }
+  .cursor-ring {
+    width: 28px; height: 28px;
+    border: 1px solid rgba(168,204,224,0.3);
+    border-radius: 50%;
+    position: fixed; pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: left 0.14s ease-out, top 0.14s ease-out;
+  }
+
+  /* ── NAV ── */
   nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 20px 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: all 0.4s ease;
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    padding: 0 72px; height: 72px;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: all 0.5s;
   }
   nav.scrolled {
-    background: rgba(14, 27, 46, 0.92);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(212, 120, 10, 0.15);
-    padding: 14px 60px;
+    background: rgba(6,14,26,0.96);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(168,204,224,0.08);
+    height: 60px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.3);
   }
-  .nav-logo {
-    font-family: 'Cinzel', serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--saffron-light);
-    letter-spacing: 4px;
-    text-decoration: none;
-  }
-  .nav-logo span {
-    color: var(--ivory);
-    font-weight: 400;
-  }
-  .nav-links {
-    display: flex;
-    gap: 36px;
-    list-style: none;
-  }
-  .nav-links a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 2px;
+  .nav-brand { text-decoration: none; display: flex; flex-direction: column; justify-content: center; }
+  .nav-brand-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--pearl); letter-spacing: 5px;
+    display: block; line-height: 1;
     text-transform: uppercase;
-    transition: color 0.3s;
   }
-  .nav-links a:hover { color: var(--saffron-light); }
+  .nav-brand-main span { color: var(--gold); }
+  .nav-brand-sub {
+    font-size: 9px; letter-spacing: 3px;
+    color: var(--moon-dim); text-transform: uppercase;
+    font-weight: 400; margin-top: 4px; display: block;
+  }
+  .nav-links { display:flex; gap:36px; list-style:none; align-items: center; }
+  .nav-links a {
+    font-size: 11px; letter-spacing: 2px;
+    color: var(--pearl-dim); text-decoration: none;
+    text-transform: uppercase; transition: color 0.3s;
+    font-weight: 400; line-height: 1;
+  }
+  .nav-links a:hover { color: var(--moon); }
   .nav-cta {
     background: transparent;
-    border: 1px solid var(--saffron);
-    color: var(--saffron-light);
-    padding: 10px 28px;
-    font-family: 'Cinzel', serif;
-    font-size: 12px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-transform: uppercase;
+    border: 1px solid rgba(168,204,224,0.25);
+    color: var(--moon); padding: 10px 24px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    cursor: none; transition: all 0.3s; border-radius: 1px;
+    white-space: nowrap;
   }
   .nav-cta:hover {
-    background: var(--saffron);
-    color: var(--navy);
+    background: rgba(168,204,224,0.08);
+    border-color: var(--moon);
   }
 
-  /* ─── HERO ─── */
+  /* ── HERO ── */
   .hero {
     min-height: 100vh;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    z-index: 1;
+    display: grid; grid-template-columns: 1fr 1fr;
+    position: relative; overflow: hidden;
+    background: radial-gradient(ellipse at 20% 50%, rgba(13,31,53,0.8) 0%, var(--abyss) 70%);
   }
 
-  .mandala-bg {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* Ocean wave bg */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 70% 60%, rgba(168,204,224,0.04) 0%, transparent 55%),
+      radial-gradient(ellipse at 30% 80%, rgba(226,194,125,0.03) 0%, transparent 45%);
     pointer-events: none;
   }
-  .mandala-ring {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(212, 120, 10, 0.08);
-    animation: slowSpin 60s linear infinite;
-  }
-  .mandala-ring:nth-child(2) { animation-direction: reverse; animation-duration: 80s; border-color: rgba(212, 120, 10, 0.05); }
-  .mandala-ring:nth-child(3) { animation-duration: 120s; border-color: rgba(212, 120, 10, 0.04); }
 
-  @keyframes slowSpin {
+  .hero-left {
+    display: flex; flex-direction: column;
+    justify-content: center;
+    padding: 140px 72px 140px;
+    position: relative; z-index: 2;
+  }
+
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 40px;
+  }
+  .ey-line { width: 44px; height: 1px; background: var(--gold-dim); }
+  .ey-text {
+    font-size: 10px; letter-spacing: 4px;
+    color: var(--gold); text-transform: uppercase; font-weight: 500;
+  }
+
+  .hero-sanskrit {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 22px; font-weight: 300;
+    color: var(--moon-dim); letter-spacing: 3px;
+    margin-bottom: 16px; line-height: 1;
+    animation: fadeUp 1s 0.1s ease both;
+  }
+
+  .hero-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(72px, 9vw, 120px);
+    font-weight: 700; line-height: 0.9;
+    color: var(--pearl); letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+
+  .hero-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 400; line-height: 1.5;
+    color: var(--moon); margin-bottom: 12px;
+    font-style: italic;
+    animation: fadeUp 1s 0.35s ease both;
+  }
+
+  .hero-subline {
+    font-size: 15px; line-height: 1.85;
+    color: var(--pearl-dim); font-weight: 300;
+    max-width: 460px; margin-bottom: 52px;
+    animation: fadeUp 1s 0.5s ease both;
+  }
+
+  .hero-ctas {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    animation: fadeUp 1s 0.65s ease both;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, rgba(168,204,224,0.15), rgba(168,204,224,0.05));
+    border: 1px solid rgba(168,204,224,0.35);
+    color: var(--pearl); padding: 16px 40px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    cursor: none; transition: all 0.4s; border-radius: 1px;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(168,204,224,0.08);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .btn-primary:hover::before { transform: scaleX(1); }
+  .btn-primary:hover { border-color: var(--moon); color: var(--moon); }
+
+  .btn-ghost {
+    background: transparent;
+    border: none; color: var(--pearl-dim);
+    padding: 16px 20px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px; font-weight: 400;
+    letter-spacing: 2px; text-transform: uppercase;
+    cursor: none; transition: color 0.3s;
+    text-decoration: underline; text-underline-offset: 4px;
+    text-decoration-color: rgba(139,175,196,0.3);
+  }
+  .btn-ghost:hover { color: var(--moon); }
+
+  /* ── MOON VISUAL ── */
+  .hero-right {
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .moon-container {
+    position: relative; width: 420px; height: 420px;
+  }
+  .moon-glow {
+    position: absolute; inset: -40px;
+    background: radial-gradient(circle at center,
+      rgba(168,204,224,0.08) 0%,
+      rgba(168,204,224,0.04) 35%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    animation: moonPulse 6s ease-in-out infinite;
+  }
+  @keyframes moonPulse {
+    0%,100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+  .moon-body {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 35%,
+      #E8F4FF 0%, #C8E0F0 25%, #A8CCE0 50%,
+      #7AAEC8 75%, #4A82A0 100%
+    );
+    box-shadow:
+      0 0 60px rgba(168,204,224,0.2),
+      0 0 120px rgba(168,204,224,0.1),
+      inset -20px -20px 40px rgba(74,130,160,0.4);
+  }
+  /* Moon craters */
+  .moon-body::before {
+    content: '';
+    position: absolute;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(74,130,160,0.3);
+    top: 30%; left: 58%;
+    box-shadow:
+      -40px 20px 0 rgba(74,130,160,0.2),
+      20px 50px 0 rgba(74,130,160,0.15),
+      -20px -10px 0 20px rgba(74,130,160,0.1);
+  }
+
+  /* Nakshatra ring */
+  .nakshatra-ring {
+    position: absolute; inset: 0;
+    animation: spin 80s linear infinite;
+  }
+  .nakshatra-ring-2 {
+    position: absolute; inset: 20px;
+    animation: spin 120s linear infinite reverse;
+    opacity: 0.5;
+  }
+  @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
 
-  .moon-orb {
+  /* Nakshatra dots */
+  .n-dot {
     position: absolute;
-    top: 15%;
-    right: 12%;
-    width: 220px;
-    height: 220px;
+    width: 3px; height: 3px;
+    background: var(--moon);
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%,
-      rgba(240, 160, 48, 0.15) 0%,
-      rgba(200, 150, 42, 0.08) 40%,
-      transparent 70%
-    );
-    border: 1px solid rgba(212, 120, 10, 0.2);
-    box-shadow:
-      0 0 60px rgba(212, 120, 10, 0.08),
-      inset 0 0 40px rgba(212, 120, 10, 0.05);
-    animation: moonPulse 8s ease-in-out infinite;
+    top: 50%; left: 50%;
+    transform-origin: 0 0;
+    opacity: 0.6;
   }
-  @keyframes moonPulse {
-    0%, 100% { box-shadow: 0 0 60px rgba(212,120,10,0.08), inset 0 0 40px rgba(212,120,10,0.05); }
-    50% { box-shadow: 0 0 100px rgba(212,120,10,0.15), inset 0 0 60px rgba(212,120,10,0.1); }
-  }
+  .n-dot.bright { background: var(--gold); width: 4px; height: 4px; opacity: 0.8; }
 
-  .hero-content {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    max-width: 900px;
-    padding: 0 40px;
-    padding-top: 80px;
-  }
-
-  .hero-tag {
-    display: inline-block;
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--saffron);
-    border: 1px solid rgba(212, 120, 10, 0.3);
-    padding: 8px 20px;
-    margin-bottom: 40px;
-    text-transform: uppercase;
-    animation: fadeInUp 1s ease both;
-  }
-
-  .hero-title {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(64px, 10vw, 120px);
-    font-weight: 700;
-    letter-spacing: 12px;
-    color: var(--ivory);
-    line-height: 1;
-    margin-bottom: 8px;
-    animation: fadeInUp 1s 0.2s ease both;
-  }
-  .hero-title .glow {
-    color: var(--saffron-light);
-    text-shadow: 0 0 60px rgba(212, 120, 10, 0.4);
-  }
-
-  .hero-subtitle-sanskrit {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-style: italic;
-    color: var(--text-dim);
-    letter-spacing: 3px;
-    margin-bottom: 32px;
-    animation: fadeInUp 1s 0.35s ease both;
-  }
-
-  .hero-subtitle {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(20px, 3vw, 28px);
-    font-weight: 300;
-    color: var(--text-light);
-    line-height: 1.6;
-    max-width: 680px;
-    margin: 0 auto 56px;
-    animation: fadeInUp 1s 0.5s ease both;
-  }
-  .hero-subtitle em {
-    font-style: italic;
-    color: var(--saffron-light);
-  }
-
-  .hero-ctas {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-    animation: fadeInUp 1s 0.65s ease both;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--saffron) 0%, var(--gold) 100%);
-    color: var(--navy);
-    border: none;
-    padding: 16px 44px;
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-primary::after {
-    content: '';
+  /* Nakshatra name labels */
+  .n-label {
     position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.15);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .btn-primary:hover::after { opacity: 1; }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212, 120, 10, 0.35); }
-
-  .btn-secondary {
-    background: transparent;
-    color: var(--ivory);
-    border: 1px solid rgba(247, 237, 216, 0.3);
-    padding: 16px 44px;
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .btn-secondary:hover {
-    border-color: var(--saffron);
-    color: var(--saffron-light);
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 9px;
+    color: rgba(168,204,224,0.35);
+    top: 50%; left: 50%;
+    white-space: nowrap;
+    transform-origin: 0 0;
+    pointer-events: none;
   }
 
-  .hero-stats {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    margin-top: 52px;
-    border: 1px solid rgba(212, 120, 10, 0.2);
-    background: rgba(14, 27, 46, 0.55);
-    backdrop-filter: blur(12px);
-    max-width: 660px;
-    margin-left: auto;
-    margin-right: auto;
-    animation: fadeInUp 1s 0.9s ease both;
+  /* Outer ring decoration */
+  .ring-outer {
+    position: absolute; inset: -10px;
+    border-radius: 50%;
+    border: 1px solid rgba(168,204,224,0.08);
   }
-  .stat-item {
-    flex: 1;
-    text-align: center;
-    padding: 22px 16px;
-    position: relative;
+  .ring-mid {
+    position: absolute; inset: 60px;
+    border-radius: 50%;
+    border: 1px solid rgba(168,204,224,0.06);
   }
-  .stat-item + .stat-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 18%; bottom: 18%;
-    width: 1px;
-    background: rgba(212, 120, 10, 0.2);
-  }
-  .stat-num {
-    font-family: 'Cinzel', serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--saffron-light);
-    display: block;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-  .stat-label {
-    font-size: 10px;
-    letter-spacing: 1.2px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    line-height: 1.5;
-    display: block;
-  }
-  .stat-divider { display: none; }
-
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+  .ring-inner {
+    position: absolute; inset: 90px;
+    border-radius: 50%;
+    border: 1px solid rgba(168,204,224,0.05);
   }
 
-  /* ─── SECTION BASE ─── */
-  section {
-    position: relative;
-    z-index: 1;
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(24px); }
+    to { opacity:1; transform:translateY(0); }
   }
 
-  .section-tag {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 4px;
-    color: var(--saffron);
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 16px;
+  /* ── ARCH DIVIDER ── */
+  .arch-divider {
+    width: 100%; overflow: hidden;
+    line-height: 0; display: block;
+    position: relative; z-index: 2;
+  }
+  .arch-divider svg { display: block; width: 100%; }
+
+  /* ── SECTION COMMONS ── */
+  .sec-eyebrow {
+    display: inline-flex; align-items: center;
+    gap: 12px; margin-bottom: 20px;
+  }
+  .sec-ey-line { width: 32px; height: 1px; background: var(--gold-dim); }
+  .sec-ey-text {
+    font-size: 10px; letter-spacing: 4px;
+    color: var(--gold); text-transform: uppercase; font-weight: 500;
+  }
+  .sec-ey-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold); flex-shrink: 0;
   }
 
-  .section-title {
+  .sec-heading {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(36px, 5vw, 60px);
-    font-weight: 600;
-    line-height: 1.1;
-    color: var(--ivory);
+    font-size: clamp(36px, 4.5vw, 58px);
+    font-weight: 600; line-height: 1.15; color: var(--pearl);
   }
+  .sec-heading em { font-style: italic; color: var(--gold); }
+  .sec-heading .moon-text { color: var(--moon); }
 
-  /* ─── PROBLEM ─── */
-  .problem-section {
-    padding: 120px 60px;
-    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
+  /* ── REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(36px);
+    transition: opacity 1.1s cubic-bezier(0.16,1,0.3,1), transform 1.1s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left {
+    opacity: 0; transform: translateX(-36px);
+    transition: opacity 1.1s cubic-bezier(0.16,1,0.3,1), transform 1.1s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right {
+    opacity: 0; transform: translateX(36px);
+    transition: opacity 1.1s cubic-bezier(0.16,1,0.3,1), transform 1.1s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+  /* ── SECTION 2 — PROBLEM ── */
+  .problem {
+    padding: 120px 72px;
+    background: var(--deep);
+    position: relative; overflow: hidden;
   }
   .problem-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 100px; align-items: center;
   }
-  .problem-left .section-title {
-    margin-bottom: 28px;
-  }
-  .problem-left p {
+  .problem-left {}
+  .problem-headline {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 300;
-    line-height: 1.8;
-    color: var(--text-light);
-    margin-bottom: 16px;
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 600; line-height: 1.2;
+    color: var(--pearl); margin-bottom: 36px;
   }
-  .problem-stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 8px;
+  .problem-headline em { font-style: italic; color: var(--moon); }
+  .problem-body {
+    display: flex; flex-direction: column; gap: 20px;
   }
-  .crisis-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(212, 120, 10, 0.12);
-    padding: 24px 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s;
+  .problem-body p {
+    font-size: 16px; line-height: 1.9;
+    color: var(--pearl-dim); font-weight: 300;
   }
-  .crisis-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--saffron);
+  .problem-body p strong {
+    color: var(--pearl); font-weight: 500;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-style: italic;
   }
-  .crisis-card:hover {
-    background: rgba(212, 120, 10, 0.06);
-    border-color: rgba(212, 120, 10, 0.25);
-  }
-  .crisis-num {
-    font-family: 'Cinzel', serif;
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--saffron-light);
-    display: block;
-    margin-bottom: 8px;
-  }
-  .crisis-desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    line-height: 1.5;
-    letter-spacing: 0.5px;
-  }
-
   .problem-right {
     position: relative;
   }
-  .ancient-gap-box {
-    background: rgba(212, 120, 10, 0.06);
-    border: 1px solid rgba(212, 120, 10, 0.2);
-    padding: 44px 40px;
-    position: relative;
+  .problem-quote {
+    background: rgba(17,40,64,0.8);
+    border: 1px solid rgba(168,204,224,0.08);
+    padding: 52px 44px;
+    position: relative; overflow: hidden;
   }
-  .ancient-gap-box::before {
+  .problem-quote::before {
     content: '"';
-    position: absolute;
-    top: -20px; left: 28px;
+    position: absolute; top: -20px; left: 24px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 100px;
-    color: var(--saffron);
-    opacity: 0.3;
-    line-height: 1;
+    font-size: 140px; color: rgba(168,204,224,0.05);
+    line-height: 1; pointer-events: none;
   }
-  .ancient-gap-box p {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-style: italic;
-    font-weight: 300;
-    line-height: 1.7;
-    color: var(--ivory);
-    margin-bottom: 24px;
-  }
-  .ancient-gap-box .attr {
-    font-size: 12px;
-    letter-spacing: 2px;
-    color: var(--saffron);
-    text-transform: uppercase;
-    font-family: 'Cinzel', serif;
-    font-style: normal;
-  }
-  .gap-label {
-    margin-top: 32px;
-    padding-top: 32px;
-    border-top: 1px solid rgba(212, 120, 10, 0.15);
-    font-size: 14px;
-    color: var(--text-dim);
-    line-height: 1.7;
-  }
-
-  /* ─── THREE PILLARS ─── */
-  .pillars-section {
-    padding: 120px 60px;
-    background: var(--navy-mid);
-    overflow: hidden;
-  }
-  .pillars-header {
-    max-width: 1200px;
-    margin: 0 auto 80px;
-    text-align: center;
-  }
-  .pillars-header .section-title { margin-bottom: 20px; }
-  .pillars-header p {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    color: var(--text-dim);
-    font-style: italic;
-  }
-  .pillars-grid {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-  }
-  .pillar-card {
-    background: rgba(255,255,255,0.02);
-    padding: 56px 40px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s;
-    cursor: default;
-  }
-  .pillar-card::after {
+  .problem-quote::after {
     content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
+    position: absolute; bottom: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, transparent, var(--saffron), transparent);
-    transform: scaleX(0);
-    transition: transform 0.4s;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
   }
-  .pillar-card:hover { background: rgba(212, 120, 10, 0.05); }
-  .pillar-card:hover::after { transform: scaleX(1); }
-  .pillar-icon {
-    font-size: 48px;
-    margin-bottom: 24px;
-    display: block;
-  }
-  .pillar-num {
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--saffron);
-    margin-bottom: 12px;
-    display: block;
-  }
-  .pillar-name {
-    font-family: 'Cinzel', serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--ivory);
-    margin-bottom: 8px;
-    letter-spacing: 1px;
-  }
-  .pillar-sanskrit {
+  .pq-text {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 16px;
-    font-style: italic;
-    color: var(--saffron);
-    margin-bottom: 20px;
+    font-size: 22px; font-style: italic;
+    font-weight: 400; line-height: 1.75;
+    color: var(--moon); margin-bottom: 0;
   }
-  .pillar-desc {
-    font-size: 14px;
-    line-height: 1.8;
-    color: var(--text-dim);
-    margin-bottom: 28px;
+  .pq-line {
+    width: 40px; height: 1px;
+    background: var(--gold-dim); margin: 28px 0;
   }
-  .pillar-features {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .pillar-features li {
-    font-size: 13px;
-    color: var(--text-light);
-    padding-left: 16px;
-    position: relative;
-    letter-spacing: 0.3px;
-  }
-  .pillar-features li::before {
-    content: '—';
-    position: absolute;
-    left: 0;
-    color: var(--saffron);
+  .pq-note {
+    font-size: 13px; line-height: 1.8;
+    color: var(--pearl-dim); font-weight: 300;
   }
 
-  /* ─── HOW IT WORKS ─── */
-  .hiw-section {
-    padding: 120px 60px;
-    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+  /* Moon phase decoration */
+  .moon-phases {
+    display: flex; gap: 16px; align-items: center;
+    margin-top: 40px;
   }
-  .hiw-inner {
-    max-width: 1200px;
-    margin: 0 auto;
+  .phase-item { text-align: center; }
+  .phase-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    margin: 0 auto 6px; border: 1px solid rgba(168,204,224,0.2);
+    position: relative; overflow: hidden;
   }
-  .hiw-header {
-    text-align: center;
-    margin-bottom: 80px;
+  .phase-circle::after {
+    content: ''; position: absolute;
+    top: 0; right: 0; bottom: 0;
+    background: var(--deep);
   }
-  .hiw-steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-    position: relative;
-  }
-  .hiw-steps::before {
-    content: '';
-    position: absolute;
-    top: 52px; left: 12.5%; right: 12.5%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(212,120,10,0.3), rgba(212,120,10,0.3), transparent);
-  }
-  .hiw-step {
-    padding: 0 24px;
-    text-align: center;
-  }
-  .step-circle {
-    width: 104px;
-    height: 104px;
-    border-radius: 50%;
-    border: 1px solid rgba(212, 120, 10, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 28px;
-    font-size: 36px;
-    background: rgba(212, 120, 10, 0.06);
-    transition: all 0.3s;
-    position: relative;
-    z-index: 2;
-  }
-  .hiw-step:hover .step-circle {
-    border-color: var(--saffron);
-    background: rgba(212, 120, 10, 0.12);
-    box-shadow: 0 0 30px rgba(212, 120, 10, 0.15);
-  }
-  .step-num {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: var(--saffron);
-    margin-bottom: 12px;
-    display: block;
-    text-transform: uppercase;
-  }
-  .step-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--ivory);
-    margin-bottom: 12px;
-  }
-  .step-desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    line-height: 1.7;
+  .phase-label {
+    font-size: 9px; letter-spacing: 1px;
+    color: var(--pearl-dim); text-transform: uppercase;
   }
 
-  /* ─── MOON ENGINE ─── */
-  .moon-section {
-    padding: 120px 60px;
-    background: var(--navy-mid);
-    position: relative;
-    overflow: hidden;
+  /* ── SECTION 3 — SOLUTION ── */
+  .solution {
+    padding: 120px 72px;
+    background: var(--abyss);
+    position: relative; overflow: hidden;
   }
-  .moon-section::before {
-    content: 'चन्द्र';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 300px;
-    color: rgba(212, 120, 10, 0.03);
-    pointer-events: none;
-    white-space: nowrap;
+  .solution::before {
+    content: 'सत्त्व';
+    position: absolute; top: 50%; right: -40px;
+    transform: translateY(-50%);
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 260px; color: rgba(168,204,224,0.025);
+    line-height: 1; pointer-events: none;
   }
-  .moon-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 100px;
-    align-items: center;
+  .solution-inner { max-width: 1200px; margin: 0 auto; }
+  .solution-header {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: end; margin-bottom: 80px;
   }
-  .moon-left .section-title { margin-bottom: 20px; }
-  .moon-left .lead {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    color: var(--text-light);
-    line-height: 1.7;
-    margin-bottom: 40px;
-    font-style: italic;
+  .solution-header p {
+    font-size: 16px; line-height: 1.9;
+    color: var(--pearl-dim); font-weight: 300;
   }
-  .affliction-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .affliction-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px 20px;
-    border: 1px solid rgba(212, 120, 10, 0.1);
-    background: rgba(255,255,255,0.02);
-    transition: all 0.3s;
-  }
-  .affliction-item:hover {
-    border-color: rgba(212, 120, 10, 0.25);
-    background: rgba(212, 120, 10, 0.04);
-  }
-  .aff-planet {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(212, 120, 10, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    border: 1px solid rgba(212, 120, 10, 0.2);
-  }
-  .aff-content {}
-  .aff-title {
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    color: var(--saffron-light);
-    margin-bottom: 4px;
-    letter-spacing: 1px;
-  }
-  .aff-desc {
-    font-size: 12px;
-    color: var(--text-dim);
-    line-height: 1.5;
-  }
-  .moon-right {
-    position: relative;
-  }
-  .chart-mockup {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(212, 120, 10, 0.15);
-    padding: 40px;
-    position: relative;
-  }
-  .chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(212, 120, 10, 0.1);
-  }
-  .chart-label {
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--saffron);
-  }
-  .chart-badge {
-    background: rgba(212, 120, 10, 0.15);
-    border: 1px solid rgba(212, 120, 10, 0.3);
-    padding: 4px 12px;
-    font-size: 11px;
-    color: var(--saffron-light);
-    letter-spacing: 1px;
-  }
-  .chart-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .chart-cell {
-    background: rgba(255,255,255,0.02);
-    padding: 14px 16px;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-  .cell-key {
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .cell-val {
+  .solution-header p em {
+    font-style: italic; color: var(--moon);
     font-family: 'Cormorant Garamond', serif;
     font-size: 18px;
-    color: var(--ivory);
-    font-weight: 500;
-  }
-  .cell-val span {
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .affliction-warning {
-    background: rgba(212, 120, 10, 0.08);
-    border: 1px solid rgba(212, 120, 10, 0.25);
-    border-left: 4px solid var(--saffron);
-    padding: 16px 20px;
-    margin-top: 4px;
-  }
-  .warning-title {
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--saffron);
-    margin-bottom: 8px;
-  }
-  .warning-text {
-    font-size: 13px;
-    color: var(--text-light);
-    line-height: 1.6;
-  }
-  .insight-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-  }
-  .tag {
-    padding: 5px 12px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.5px;
   }
 
-  /* ─── SHLOKA PREVIEW ─── */
-  .shloka-section {
-    padding: 120px 60px;
-    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
-  }
-  .shloka-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  .shloka-header {
-    text-align: center;
-    margin-bottom: 64px;
-  }
-  .shloka-filters {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 48px;
-    flex-wrap: wrap;
-  }
-  .filter-btn {
-    padding: 8px 20px;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text-dim);
-    font-family: 'Jost', sans-serif;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .filter-btn.active, .filter-btn:hover {
-    border-color: var(--saffron);
-    color: var(--saffron-light);
-    background: rgba(212, 120, 10, 0.06);
-  }
-  .shloka-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+  /* Four sciences */
+  .sciences {
+    display: grid; grid-template-columns: repeat(4, 1fr);
     gap: 2px;
   }
-  .shloka-card {
-    background: rgba(255,255,255,0.02);
-    padding: 40px 32px;
-    transition: all 0.3s;
-    border: 1px solid transparent;
-    cursor: pointer;
+  .science-card {
+    background: rgba(13,31,53,0.6);
+    padding: 44px 28px;
+    position: relative; overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1); cursor: none;
+    border-bottom: 2px solid transparent;
   }
-  .shloka-card:hover {
-    background: rgba(212, 120, 10, 0.05);
-    border-color: rgba(212, 120, 10, 0.2);
-  }
-  .shloka-emotion {
-    display: inline-block;
-    padding: 4px 12px;
-    background: rgba(212, 120, 10, 0.1);
-    border: 1px solid rgba(212, 120, 10, 0.2);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--saffron);
-    text-transform: uppercase;
-    font-family: 'Cinzel', serif;
-    margin-bottom: 20px;
-  }
-  .shloka-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 19px;
-    font-style: italic;
-    color: var(--ivory);
-    line-height: 1.7;
-    margin-bottom: 16px;
-  }
-  .shloka-transliteration {
-    font-size: 12px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    margin-bottom: 16px;
-    font-style: italic;
-  }
-  .shloka-meaning {
-    font-size: 13px;
-    color: var(--text-light);
-    line-height: 1.7;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-  }
-  .shloka-source {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--saffron);
-    margin-top: 16px;
-    display: block;
-  }
-
-  /* ─── FOUNDER ─── */
-  .founder-section {
-    padding: 120px 60px;
-    background: var(--navy-mid);
-  }
-  .founder-inner {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 80px;
-    align-items: center;
-  }
-  .founder-portrait {
-    width: 240px;
-    height: 320px;
-    background: linear-gradient(135deg, rgba(212,120,10,0.15) 0%, rgba(14,27,46,0.8) 100%);
-    border: 1px solid rgba(212, 120, 10, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .founder-portrait::before {
+  .science-card::after {
     content: '';
-    position: absolute;
-    inset: 6px;
-    border: 1px solid rgba(212, 120, 10, 0.1);
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(168,204,224,0.08) 0%, transparent 65%);
+    opacity: 0; transition: opacity 0.5s;
+    pointer-events: none;
   }
-  .portrait-icon { font-size: 72px; }
-  .portrait-rating {
-    font-family: 'Cinzel', serif;
-    font-size: 14px;
-    color: var(--saffron-light);
-    letter-spacing: 2px;
+  .science-card:hover {
+    background: rgba(17,40,64,0.95);
+    border-bottom-color: var(--gold);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(168,204,224,0.05);
   }
-  .founder-content .section-tag { margin-bottom: 20px; }
-  .founder-name {
-    font-family: 'Cinzel', serif;
-    font-size: 36px;
-    font-weight: 600;
-    color: var(--ivory);
-    margin-bottom: 8px;
-    letter-spacing: 2px;
-  }
-  .founder-title {
+  .science-card:hover::after { opacity: 1; }
+  .science-card::before {
+    content: attr(data-num);
+    position: absolute; top: 20px; right: 20px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-style: italic;
-    color: var(--saffron);
-    margin-bottom: 28px;
+    font-size: 56px; font-weight: 700;
+    color: rgba(168,204,224,0.04);
+    line-height: 1;
   }
-  .founder-bio {
+  .sc-sanskrit {
+    font-family: 'Noto Serif Devanagari', serif;
+    font-size: 28px; color: var(--moon);
+    margin-bottom: 20px; display: block;
+    opacity: 0.7;
+  }
+  .sc-num {
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--gold); margin-bottom: 10px;
+    display: block; text-transform: uppercase;
+  }
+  .sc-name {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 19px;
-    font-weight: 300;
-    line-height: 1.8;
-    color: var(--text-light);
-    margin-bottom: 36px;
+    font-size: 26px; font-weight: 600;
+    color: var(--pearl); margin-bottom: 8px;
+    letter-spacing: 1px;
   }
-  .founder-credentials {
-    display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
+  .sc-eng {
+    font-size: 11px; letter-spacing: 2px;
+    color: var(--moon-dim); margin-bottom: 18px;
+    display: block; text-transform: uppercase;
   }
-  .credential {
-    text-align: center;
+  .sc-desc {
+    font-size: 13px; line-height: 1.8;
+    color: var(--pearl-dim); font-weight: 300;
   }
-  .cred-num {
-    font-family: 'Cinzel', serif;
-    font-size: 28px;
-    color: var(--saffron-light);
-    display: block;
-    font-weight: 700;
-  }
-  .cred-label {
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-top: 4px;
+  .sc-role {
+    margin-top: 20px; padding-top: 20px;
+    border-top: 1px solid rgba(168,204,224,0.06);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; font-style: italic;
+    color: var(--gold); line-height: 1.5;
   }
 
-  /* ─── CTA SECTION ─── */
-  .cta-section {
-    padding: 120px 60px;
-    background: var(--navy);
-    text-align: center;
+  /* ── SECTION 4 — JOURNEY ── */
+  .journey {
+    padding: 120px 72px;
+    background: var(--deep);
+    position: relative; overflow: hidden;
+  }
+  .journey-inner { max-width: 1200px; margin: 0 auto; }
+  .journey-header { margin-bottom: 80px; }
+  .journey-header p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-style: italic;
+    color: var(--moon-dim); margin-top: 20px;
+    max-width: 560px; line-height: 1.7;
+  }
+
+  /* Entry — problem selector */
+  .entry-box {
+    background: rgba(6,14,26,0.7);
+    border: 1px solid rgba(168,204,224,0.08);
+    padding: 48px 44px; margin-bottom: 64px;
     position: relative;
-    overflow: hidden;
+  }
+  .entry-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+  .entry-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 500;
+    color: var(--pearl); margin-bottom: 28px;
+    font-style: italic;
+  }
+  .entry-problems {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .ep-btn {
+    padding: 10px 22px;
+    background: rgba(17,40,64,0.6);
+    border: 1px solid rgba(168,204,224,0.1);
+    color: var(--pearl-dim);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 300;
+    cursor: none; transition: all 0.3s; border-radius: 1px;
+    letter-spacing: 0.5px;
+  }
+  .ep-btn:hover, .ep-btn.active {
+    border-color: var(--moon);
+    color: var(--moon);
+    background: rgba(168,204,224,0.06);
+  }
+  .entry-note {
+    margin-top: 20px; font-size: 12px;
+    color: var(--pearl-dim); letter-spacing: 0.5px;
+    font-style: italic;
+  }
+  .entry-note span { color: var(--gold); }
+
+  /* Phases */
+  .phases-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px; margin-bottom: 64px;
+  }
+  .phase-card {
+    padding: 48px 36px;
+    background: rgba(6,14,26,0.5);
+    border: 1px solid rgba(168,204,224,0.06);
+    position: relative; transition: all 0.4s;
+  }
+  .phase-card:hover {
+    background: rgba(13,31,53,0.8);
+    border-color: rgba(168,204,224,0.12);
+  }
+  .phase-card.paid {
+    border-color: rgba(226,194,125,0.08);
+  }
+  .phase-card.paid:hover {
+    border-color: rgba(226,194,125,0.2);
+  }
+  .phase-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px; font-weight: 700;
+    color: rgba(168,204,224,0.05);
+    position: absolute; top: 16px; right: 20px;
+    line-height: 1;
+  }
+  .phase-tag {
+    display: inline-block; padding: 4px 14px;
+    border-radius: 20px; font-size: 10px;
+    letter-spacing: 2px; font-weight: 600;
+    text-transform: uppercase; margin-bottom: 24px;
+  }
+  .phase-tag.free {
+    background: rgba(168,204,224,0.08);
+    border: 1px solid rgba(168,204,224,0.2);
+    color: var(--moon);
+  }
+  .phase-tag.paid-tag {
+    background: rgba(226,194,125,0.08);
+    border: 1px solid rgba(226,194,125,0.2);
+    color: var(--gold);
+  }
+  .phase-icon { font-size: 36px; margin-bottom: 20px; display: block; }
+  .phase-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 600;
+    color: var(--pearl); margin-bottom: 14px; line-height: 1.2;
+  }
+  .phase-desc {
+    font-size: 14px; line-height: 1.85;
+    color: var(--pearl-dim); font-weight: 300;
+    margin-bottom: 24px;
+  }
+  .phase-features {
+    display: flex; flex-direction: column; gap: 8px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(168,204,224,0.06);
+  }
+  .pf-item {
+    font-size: 12px; color: var(--pearl-dim);
+    display: flex; align-items: flex-start; gap: 10px;
+    line-height: 1.5;
+  }
+  .pf-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--gold-dim); flex-shrink: 0; margin-top: 5px;
+  }
+
+  /* 30 Day Journey */
+  .thirty-days {
+    background: rgba(6,14,26,0.7);
+    border: 1px solid rgba(168,204,224,0.06);
+    padding: 56px 52px;
+    position: relative; overflow: hidden;
+  }
+  .thirty-days::after {
+    content: '30';
+    position: absolute; bottom: -30px; right: -10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 200px; font-weight: 700;
+    color: rgba(168,204,224,0.025);
+    line-height: 1; pointer-events: none;
+  }
+  .td-header { margin-bottom: 48px; }
+  .td-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px; font-weight: 600;
+    color: var(--pearl); margin-bottom: 12px;
+  }
+  .td-sub {
+    font-size: 14px; color: var(--pearl-dim);
+    line-height: 1.7; max-width: 480px;
+  }
+  .weeks {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 2px;
+  }
+  .week {
+    padding: 28px 22px;
+    background: rgba(13,31,53,0.4);
+    border-top: 2px solid transparent;
+    transition: all 0.4s;
+    position: relative;
+  }
+  .week:hover { background: rgba(17,40,64,0.8); border-top-color: var(--moon); }
+  .week-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px; letter-spacing: 3px;
+    color: var(--moon-dim); text-transform: uppercase;
+    margin-bottom: 12px; display: block;
+  }
+  .week-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 600;
+    color: var(--pearl); margin-bottom: 10px;
+  }
+  .week-desc {
+    font-size: 13px; line-height: 1.75;
+    color: var(--pearl-dim); font-weight: 300;
+  }
+
+  /* Daily loop */
+  .daily-loop {
+    margin-top: 40px; padding-top: 40px;
+    border-top: 1px solid rgba(168,204,224,0.06);
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 2px;
+  }
+  .dl-item {
+    padding: 24px 20px; text-align: center;
+    background: rgba(6,14,26,0.4);
+  }
+  .dl-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+  .dl-time {
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 8px; display: block;
+  }
+  .dl-action {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px; font-weight: 500;
+    color: var(--pearl); margin-bottom: 6px;
+  }
+  .dl-detail {
+    font-size: 12px; color: var(--pearl-dim);
+    line-height: 1.5;
+  }
+
+  /* ── SECTION 5 — PROOF ── */
+  .proof {
+    padding: 120px 72px;
+    background: var(--surface);
+    position: relative; overflow: hidden;
+  }
+  .proof::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 80% 50%,
+      rgba(168,204,224,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .proof-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1.2fr;
+    gap: 100px; align-items: center;
+  }
+  .proof-visual {
+    position: relative;
+  }
+  .proof-frame {
+    background: rgba(6,14,26,0.8);
+    border: 1px solid rgba(168,204,224,0.08);
+    padding: 52px 40px;
+    position: relative; overflow: hidden;
+  }
+  .proof-frame::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, transparent, var(--gold-dim), transparent);
+  }
+  .proof-stats {
+    display: flex; flex-direction: column; gap: 32px;
+  }
+  .ps-item {}
+  .ps-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px; font-weight: 700;
+    color: var(--moon); display: block; line-height: 1;
+    margin-bottom: 8px;
+  }
+  .ps-label {
+    font-size: 12px; color: var(--pearl-dim);
+    letter-spacing: 1px; line-height: 1.5;
+  }
+  .ps-divider {
+    width: 100%; height: 1px;
+    background: rgba(168,204,224,0.06);
+  }
+
+  .proof-content {}
+  .proof-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 3.5vw, 48px);
+    font-weight: 600; line-height: 1.2;
+    color: var(--pearl); margin-bottom: 32px;
+  }
+  .proof-headline em { font-style: italic; color: var(--gold); }
+
+  .proof-body {
+    display: flex; flex-direction: column; gap: 18px;
+    margin-bottom: 40px;
+  }
+  .proof-body p {
+    font-size: 15px; line-height: 1.9;
+    color: var(--pearl-dim); font-weight: 300;
+  }
+  .proof-body p strong {
+    color: var(--pearl); font-weight: 500;
+  }
+  .proof-body p em {
+    font-style: italic; color: var(--moon);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+  }
+
+  .proof-result {
+    background: rgba(6,14,26,0.5);
+    border: 1px solid rgba(168,204,224,0.08);
+    border-left: 3px solid var(--gold-dim);
+    padding: 24px 28px;
+  }
+  .pr-label {
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 10px; display: block;
+  }
+  .pr-words {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .pr-word {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-style: italic;
+    color: var(--moon); font-weight: 500;
+  }
+  .pr-sep {
+    font-size: 22px; color: var(--pearl-dim); opacity: 0.3;
+    align-self: center;
+  }
+
+  /* ── SECTION 6 — CTA ── */
+  .cta-section {
+    padding: 140px 72px;
+    background: var(--abyss);
+    text-align: center; position: relative; overflow: hidden;
   }
   .cta-section::before {
     content: '';
-    position: absolute;
-    top: 50%; left: 50%;
+    position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(212,120,10,0.06) 0%, transparent 70%);
+    width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(168,204,224,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Arch decorations */
+  .cta-arch {
+    position: absolute;
+    width: 600px; height: 300px;
+    border: 1px solid rgba(168,204,224,0.04);
+    border-radius: 300px 300px 0 0;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    pointer-events: none;
+  }
+  .cta-arch-2 {
+    position: absolute;
+    width: 900px; height: 450px;
+    border: 1px solid rgba(168,204,224,0.025);
+    border-radius: 450px 450px 0 0;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -58%);
     pointer-events: none;
   }
   .cta-inner {
-    max-width: 700px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
+    max-width: 620px; margin: 0 auto;
+    position: relative; z-index: 1;
   }
-  .cta-section .section-title { margin-bottom: 20px; }
-  .cta-section .section-title em {
-    font-style: italic;
-    color: var(--saffron-light);
+  .cta-moon {
+    font-size: 48px; margin-bottom: 24px; display: block;
+    animation: moonPulse 4s ease-in-out infinite;
   }
-  .cta-sub {
+  .cta-headline {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    color: var(--text-dim);
-    font-style: italic;
+    font-size: clamp(36px, 5vw, 62px);
+    font-weight: 600; line-height: 1.1;
+    color: var(--pearl); margin-bottom: 20px;
+  }
+  .cta-headline em { font-style: italic; color: var(--gold); }
+  .cta-body {
+    font-size: 16px; line-height: 1.85;
+    color: var(--pearl-dim); font-weight: 300;
     margin-bottom: 48px;
-    line-height: 1.6;
+  }
+  .cta-body em {
+    font-style: italic; color: var(--moon);
+    font-family: 'Cormorant Garamond', serif; font-size: 18px;
   }
   .cta-btns {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 48px;
+    display: flex; gap: 16px;
+    justify-content: center; flex-wrap: wrap;
+    margin-bottom: 32px;
   }
   .cta-note {
-    font-size: 12px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
+    font-size: 11px; color: var(--pearl-dim);
+    letter-spacing: 1px; line-height: 1.8;
   }
+  .cta-note span { color: var(--moon-dim); }
 
-  /* ─── FOOTER ─── */
+  /* ── FOOTER ── */
   footer {
-    background: rgba(0,0,0,0.4);
-    border-top: 1px solid rgba(212, 120, 10, 0.1);
-    padding: 48px 60px;
+    background: rgba(0,0,0,0.5);
+    border-top: 1px solid rgba(168,204,224,0.06);
+    padding: 0 72px;
+    height: 72px;
+    display: flex; align-items: center;
   }
   .footer-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    max-width: 1200px; margin: 0 auto; width: 100%;
+    display: flex; justify-content: space-between; align-items: center;
   }
-  .footer-logo {
-    font-family: 'Cinzel', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--saffron-light);
-    letter-spacing: 4px;
+  .footer-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 600;
+    color: var(--pearl); letter-spacing: 4px;
+    text-transform: uppercase; line-height: 1;
   }
-  .footer-links {
-    display: flex;
-    gap: 32px;
-    list-style: none;
-  }
+  .footer-brand span { color: var(--gold); font-style: italic; }
+  .footer-links { display: flex; gap: 28px; list-style: none; align-items: center; }
   .footer-links a {
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    color: var(--text-dim);
-    text-decoration: none;
-    text-transform: uppercase;
-    transition: color 0.3s;
+    font-size: 11px; letter-spacing: 2px;
+    color: var(--pearl-dim); text-decoration: none;
+    text-transform: uppercase; transition: color 0.3s; font-weight: 400;
+    line-height: 1;
   }
-  .footer-links a:hover { color: var(--saffron-light); }
-  .footer-copy {
-    font-size: 12px;
-    color: rgba(168, 144, 112, 0.5);
-    letter-spacing: 0.5px;
-  }
+  .footer-links a:hover { color: var(--moon); }
+  .footer-copy { font-size: 11px; color: rgba(139,175,196,0.3); line-height: 1; white-space: nowrap; }
 
-  /* ─── SCROLL ANIMATIONS ─── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* ─── RESPONSIVE ─── */
-  @media (max-width: 900px) {
-    nav { padding: 16px 24px; }
-    nav.scrolled { padding: 12px 24px; }
+  /* ── RESPONSIVE ── */
+  @media (max-width: 960px) {
+    nav, nav.scrolled { padding: 14px 24px; }
     .nav-links, .nav-cta { display: none; }
-    .problem-inner, .moon-inner, .founder-inner { grid-template-columns: 1fr; gap: 48px; }
-    .pillars-grid { grid-template-columns: 1fr; }
-    .hiw-steps { grid-template-columns: 1fr 1fr; }
-    .hiw-steps::before { display: none; }
-    .shloka-cards { grid-template-columns: 1fr; }
-    .hero-stats { max-width: 100%; margin-top: 36px; }
-    .stat-num { font-size: 22px; }
-    .stat-label { font-size: 9px; }
-    .hero-content { padding: 0 24px; padding-top: 80px; }
-    .problem-section, .pillars-section, .hiw-section, .moon-section, .shloka-section, .founder-section, .cta-section { padding: 80px 24px; }
+    .hero { grid-template-columns: 1fr; min-height: auto; }
+    .hero-left { padding: 120px 24px 80px; }
+    .hero-right { height: 320px; }
+    .problem-inner, .solution-header, .proof-inner { grid-template-columns: 1fr; gap: 48px; }
+    .sciences { grid-template-columns: 1fr 1fr; }
+    .phases-grid { grid-template-columns: 1fr; }
+    .weeks { grid-template-columns: 1fr 1fr; }
+    .daily-loop { grid-template-columns: 1fr; }
+    .problem, .solution, .journey, .proof, .cta-section { padding: 80px 24px; }
     footer { padding: 40px 24px; }
     .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
-    .problem-stats-grid { grid-template-columns: 1fr 1fr; }
-    .founder-inner { grid-template-columns: 1fr; }
-    .founder-portrait { width: 100%; height: 200px; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
   }
 `;
 
-// Stars
-function StarsCanvas() {
-  const ref = useRef(null);
+// Nakshatra names
+const NAKSHATRAS = ["अश्विनी","भरणी","कृत्तिका","रोहिणी","मृगशिरा","आर्द्रा","पुनर्वसु","पुष्य","आश्लेषा","मघा","पूर्वा","उत्तरा","हस्त","चित्रा","स्वाति","विशाखा","अनुराधा","ज्येष्ठा","मूल","पूर्वाषाढा","उत्तराषाढा","श्रवण","धनिष्ठा","शतभिषा","पूर्वभाद्र","उत्तरभाद्र","रेवती"];
+
+function Cursor() {
+  const dot = useRef(null);
+  const ring = useRef(null);
   useEffect(() => {
-    const canvas = ref.current;
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const stars = Array.from({ length: 180 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 1.2 + 0.2,
-      o: Math.random() * 0.6 + 0.1,
-      speed: Math.random() * 0.3 + 0.05,
-      phase: Math.random() * Math.PI * 2,
-    }));
-    let t = 0;
-    let raf;
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      stars.forEach(s => {
-        const opacity = s.o * (0.7 + 0.3 * Math.sin(t * s.speed + s.phase));
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(240, 200, 140, ${opacity})`;
-        ctx.fill();
-      });
-      t += 0.02;
-      raf = requestAnimationFrame(draw);
-    }
-    draw();
-    return () => cancelAnimationFrame(raf);
+    const mv = (e) => {
+      if (dot.current) { dot.current.style.left = e.clientX+'px'; dot.current.style.top = e.clientY+'px'; }
+      if (ring.current) { ring.current.style.left = e.clientX+'px'; ring.current.style.top = e.clientY+'px'; }
+    };
+    window.addEventListener('mousemove', mv);
+    return () => window.removeEventListener('mousemove', mv);
   }, []);
-  return <canvas id="stars-canvas" ref={ref} />;
+  return (<><div className="cursor" ref={dot}/><div className="cursor-ring" ref={ring}/></>);
 }
 
-// Reveal hook
+function MoonVisual() {
+  const dots = Array.from({ length: 27 }, (_, i) => {
+    const angle = (i / 27) * 360;
+    const rad = (angle * Math.PI) / 180;
+    const r = 190;
+    const x = Math.cos(rad) * r;
+    const y = Math.sin(rad) * r;
+    return { x, y, angle, name: NAKSHATRAS[i], bright: i % 4 === 0 };
+  });
+
+  return (
+    <div className="moon-container">
+      <div className="moon-glow" />
+      <div className="ring-outer" />
+      <div className="ring-mid" />
+      <div className="ring-inner" />
+      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} viewBox="-210 -210 420 420">
+        {/* Nakshatra dots */}
+        {dots.map((d, i) => (
+          <g key={i}>
+            <circle
+              cx={d.x} cy={d.y}
+              r={d.bright ? 2.5 : 1.5}
+              fill={d.bright ? '#E2C27D' : '#A8CCE0'}
+              opacity={d.bright ? 0.8 : 0.5}
+            />
+            {d.bright && (
+              <text
+                x={d.x * 1.22} y={d.y * 1.22}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="7"
+                fill="rgba(168,204,224,0.3)"
+                fontFamily="'Noto Serif Devanagari', serif"
+                transform={`rotate(${d.angle + 90}, ${d.x * 1.22}, ${d.y * 1.22})`}
+              >
+                {d.name}
+              </text>
+            )}
+          </g>
+        ))}
+        {/* Connecting ring */}
+        <circle cx="0" cy="0" r="190" fill="none" stroke="rgba(168,204,224,0.06)" strokeWidth="1" strokeDasharray="2 6" />
+        <circle cx="0" cy="0" r="155" fill="none" stroke="rgba(226,194,125,0.04)" strokeWidth="1" />
+      </svg>
+      <div className="moon-body" />
+    </div>
+  );
+}
+
+// Floating star particles
+function StarField() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let ctx;
+    try { ctx = canvas.getContext('2d'); } catch(e) { return; }
+    if (!ctx) return;
+    let W = canvas.width = canvas.offsetWidth || window.innerWidth;
+    let H = canvas.height = canvas.offsetHeight || window.innerHeight;
+    const resize = () => {
+      W = canvas.width = canvas.offsetWidth || window.innerWidth;
+      H = canvas.height = canvas.offsetHeight || window.innerHeight;
+    };
+    window.addEventListener('resize', resize);
+    const stars = Array.from({ length: 80 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      dx: (Math.random() - 0.5) * 0.12,
+      dy: -Math.random() * 0.15 - 0.04,
+      opacity: Math.random() * 0.45 + 0.1,
+      ts: Math.random() * 0.018 + 0.004,
+      to: Math.random() * Math.PI * 2,
+    }));
+    let frame = 0, animId;
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      frame++;
+      stars.forEach(s => {
+        const tw = Math.sin(frame * s.ts + s.to) * 0.3 + 0.7;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(168,204,224,${s.opacity * tw})`;
+        ctx.fill();
+        s.x += s.dx; s.y += s.dy;
+        if (s.y < -5) { s.y = H + 5; s.x = Math.random() * W; }
+        if (s.x < -5) s.x = W + 5;
+        if (s.x > W + 5) s.x = -5;
+      });
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+  }, []);
+  return (
+    <canvas ref={canvasRef} style={{
+      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+      pointerEvents: 'none', zIndex: 1, opacity: 0.65
+    }} />
+  );
+}
+
+// Parallax hook
+function useParallax() {
+  const [offset, setOffset] = useState(0);
+  useEffect(() => {
+    const fn = () => setOffset(window.scrollY);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+  return offset;
+}
+
 function useReveal() {
   useEffect(() => {
-    const els = document.querySelectorAll(".reveal");
+    const els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); }),
-      { threshold: 0.12 }
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.08 }
     );
     els.forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, []);
 }
 
-const shlokas = [
-  {
-    emotion: "Anxiety",
-    text: "मन एव मनुष्याणां कारणं बन्धमोक्षयोः",
-    transliteration: "Mana eva manuṣyāṇāṃ kāraṇaṃ bandhamokṣayoḥ",
-    meaning: "The mind alone is the cause of both bondage and liberation for human beings.",
-    source: "Amṛtabindu Upaniṣad · 2",
-  },
-  {
-    emotion: "Grief",
-    text: "नासतो विद्यते भावो नाभावो विद्यते सतः",
-    transliteration: "Nāsato vidyate bhāvo nābhāvo vidyate sataḥ",
-    meaning: "The unreal has no being; the real never ceases to be. The truth of both has been seen by seers.",
-    source: "Bhagavad Gītā · 2.16",
-  },
-  {
-    emotion: "Confusion",
-    text: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत्",
-    transliteration: "Uddhareda ātmanā ātmānaṃ nātmānam avasādayet",
-    meaning: "Let a person lift themselves by their own self; let them not allow the self to decline.",
-    source: "Bhagavad Gītā · 6.5",
-  },
-];
-
-const afflictions = [
-  { planet: "♄", name: "Chandra–Shani", pattern: "Chronic melancholy, isolation, fear of loss", ayurveda: "Vata-Kapha", emoji: "🪐" },
-  { planet: "☊", name: "Chandra–Rahu", pattern: "Obsessive anxiety, illusions, racing thoughts", ayurveda: "Vata aggravation", emoji: "🌀" },
-  { planet: "☋", name: "Chandra–Ketu", pattern: "Emotional detachment, spiritual disorientation", ayurveda: "Vata-Prana", emoji: "🌑" },
-  { planet: "♂", name: "Chandra–Mangal", pattern: "Emotional volatility, impulsive anger reactions", ayurveda: "Pitta aggravation", emoji: "🔥" },
-];
+const ArchDivider = ({ from, to, flip = false }) => (
+  <div className="arch-divider">
+    <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ height: 80, transform: flip ? 'rotate(180deg)' : 'none' }}>
+      <path d={`M0,0 C360,80 1080,80 1440,0 L1440,80 L0,80 Z`} fill={to} />
+      <path d="M0,0 C360,80 1080,80 1440,0" fill="none" stroke="rgba(168,204,224,0.06)" strokeWidth="1" />
+    </svg>
+  </div>
+);
 
 export default function SattvaLanding() {
   const [scrolled, setScrolled] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("All");
-
+  const [activeProb, setActiveProb] = useState(null);
+  const scrollY = useParallax();
   useReveal();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    const fn = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
   return (
     <>
-      <style>{FONTS + styles}</style>
-      <StarsCanvas />
+      <style>{FONTS + css}</style>
+      <Cursor />
+      <StarField />
 
-      {/* NAV */}
-      <nav className={scrolled ? "scrolled" : ""}>
-        <a className="nav-logo" href="#">SATTVA</a>
+      {/* ── NAV ── */}
+      <nav className={scrolled ? 'scrolled' : ''}>
+        <a className="nav-brand" href="#">
+          <span className="nav-brand-main">SATTVA</span>
+          <span className="nav-brand-sub">sattvaheals.in · Indian Knowledge System</span>
+        </a>
         <ul className="nav-links">
-          {["The System", "Moon Engine", "Shlokas", "Consult"].map(l => (
+          {['The System','Your Journey','Proof','Begin'].map(l => (
             <li key={l}><a href="#">{l}</a></li>
           ))}
         </ul>
-        <button className="nav-cta">Begin Your Chart</button>
+        <button className="nav-cta">Begin — it's free</button>
       </nav>
 
-      {/* HERO */}
+      {/* ── SECTION 1: HERO ── */}
       <section className="hero">
-        <div className="mandala-bg">
-          <div className="mandala-ring" style={{ width: 400, height: 400 }} />
-          <div className="mandala-ring" style={{ width: 650, height: 650 }} />
-          <div className="mandala-ring" style={{ width: 900, height: 900 }} />
-        </div>
-        <div className="moon-orb" />
-        <div className="hero-content">
-          <div className="hero-tag">Indian Knowledge System · Mental Wellness</div>
-          <div className="hero-title">
-            <span className="glow">SATTVA</span>
+        <div className="hero-left">
+          <div className="hero-eyebrow">
+            <div className="ey-line" />
+            <span className="ey-text">sattvaheals.in</span>
           </div>
-          <div className="hero-subtitle-sanskrit">सत्त्व — The Pure Mind</div>
-          <p className="hero-subtitle">
-            Where <em>Jyotisha</em> reveals your patterns, <em>Ayurveda</em> heals your constitution,
-            and <em>Sanskrit wisdom</em> steadies your mind. Ancient India's complete science of mental wellness — made accessible.
+          <div className="hero-sanskrit">सत्त्व</div>
+          <div className="hero-brand">SATTVA</div>
+          <h1 className="hero-headline">
+            5,000 years of mind science.<br />
+            Built for the one mind that matters — yours.
+          </h1>
+          <p className="hero-subline">
+            Ancient India never separated the stars from the soul,
+            the body from the mind, or wisdom from healing.
+            SATTVA doesn't either.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary">Discover Your Chart</button>
-            <button className="btn-secondary">Explore the System</button>
+            <button className="btn-primary">Begin — it's free</button>
+            <button className="btn-ghost">How it works</button>
           </div>
-          <div className="hero-stats">
-            <div className="stat-item">
-              <span className="stat-num">197M</span>
-              <span className="stat-label">Indians affected<br/>by mental illness</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-num">5000+</span>
-              <span className="stat-label">Years of IKS<br/>mind science</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-num">83%</span>
-              <span className="stat-label">Treatment gap —<br/>still unserved</span>
-            </div>
+        </div>
+        <div className="hero-right">
+          <div style={{ transform: `translateY(${scrollY * 0.18}px)`, transition: 'transform 0.1s linear' }}>
+            <MoonVisual />
           </div>
         </div>
       </section>
 
-      {/* PROBLEM */}
-      <section className="problem-section">
+      <ArchDivider from="#060E1A" to="#0D1F35" />
+
+      {/* ── SECTION 2: PROBLEM ── */}
+      <section className="problem">
         <div className="problem-inner">
-          <div className="problem-left reveal">
-            <span className="section-tag">The Crisis</span>
-            <h2 className="section-title cormorant">
-              India holds the answer.<br />
-              <em style={{ color: "var(--saffron-light)", fontStyle: "italic" }}>The world just forgot to look.</em>
+          <div className="problem-left reveal-left">
+            <div className="sec-eyebrow">
+              <div className="sec-ey-line" />
+              <span className="sec-ey-text">We see you</span>
+            </div>
+            <h2 className="problem-headline">
+              You don't always know<br />
+              <em>what's wrong.</em><br />
+              You just know something is.
             </h2>
-            <p>
-              India's mental health epidemic is severe and structurally underserved.
-              Modern therapy costs thousands, carries stigma, and speaks a cultural language
-              that most Indians simply do not feel.
-            </p>
-            <p>
-              Yet this same civilization produced the most complete science of mind and consciousness
-              ever developed — Yoga, Ayurveda, Jyotisha, Vedanta. Not mythology. Testable frameworks.
-            </p>
-            <div className="problem-stats-grid">
-              {[
-                ["1 in 7", "Indians has a mental health condition"],
-                ["0.3", "psychiatrists per 100,000 people"],
-                ["₹0", "cost of 5,000 years of IKS wisdom, if you know where to look"],
-                ["83%", "of those who need care never receive it"],
-              ].map(([n, d]) => (
-                <div className="crisis-card" key={n}>
-                  <span className="crisis-num">{n}</span>
-                  <div className="crisis-desc">{d}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="problem-right reveal">
-            <div className="ancient-gap-box">
+            <div className="problem-body">
+              <p>Not every wound has a name.<br />Not every storm announces itself.</p>
               <p>
-                Chandra — the Moon — is Manas, the mind itself. Every ancient text agrees.
-                When the Moon is afflicted, the mind suffers. When it is nourished, the mind flourishes.
-                Your birth chart holds a map of your mental landscape that no Western framework can read.
+                Sometimes the mind just goes quiet —<br />
+                not from peace,<br />
+                but from not knowing<br />
+                <strong>where to even begin.</strong>
               </p>
-              <div className="attr">— Charaka Saṃhitā, on Manas and Chandra</div>
-              <div className="gap-label">
-                SATTVA bridges this gap — translating the precise planetary intelligence of Jyotisha,
-                the healing protocols of Ayurveda, and the grounding wisdom of Sanskrit into a
-                personalized mental wellness system built for the modern world.
+              <p>
+                You're not lost.<br />
+                You're unread.<br /><br />
+                And there is a difference.
+              </p>
+            </div>
+          </div>
+          <div className="problem-right reveal-right">
+            <div className="problem-quote">
+              <p className="pq-text">
+                "Chandra is Manas —<br />
+                the Moon is the mind itself.<br />
+                When the Moon is afflicted,<br />
+                the mind suffers.<br />
+                When it is nourished,<br />
+                the mind flourishes."
+              </p>
+              <div className="pq-line" />
+              <p className="pq-note">
+                Ancient India built an entire science around this truth.
+                Jyotisha, Ayurveda, Yoga and Mantra were never separate disciplines —
+                they were one complete answer to the question every generation asks:
+                <br /><br />
+                <em style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 16, color: '#A8CCE0', fontStyle: 'italic' }}>
+                  "Why do I feel this way, and what do I do about it?"
+                </em>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <ArchDivider from="#0D1F35" to="#060E1A" />
+
+      {/* ── SECTION 3: SOLUTION ── */}
+      <section className="solution">
+        <div className="solution-inner">
+          <div className="solution-header reveal">
+            <div>
+              <div className="sec-eyebrow">
+                <div className="sec-ey-line" />
+                <span className="sec-ey-text">The ancient answer</span>
               </div>
+              <h2 className="sec-heading">
+                The map has always existed.<br />
+                <em>Nobody showed it to you.</em>
+              </h2>
             </div>
+            <p>
+              For 5,000 years, India built a complete science of the human mind.
+              Not one framework — <em>four.</em> Each one precise. Each one personal.
+              Together, calibrated to your Moon, your constitution, your moment in time — <em>complete.</em>
+            </p>
           </div>
-        </div>
-      </section>
-
-      {/* THREE PILLARS */}
-      <section className="pillars-section">
-        <div className="pillars-header reveal">
-          <span className="section-tag">The Three Pillars</span>
-          <h2 className="section-title cormorant">One system. Three ancient sciences.</h2>
-          <p>Each pillar is complete. Together, they are transformative.</p>
-        </div>
-        <div className="pillars-grid">
-          {[
-            {
-              icon: "🌙", num: "01", name: "Jyotisha", sanskrit: "ज्योतिष — Light Science",
-              desc: "The science of planetary intelligence. Your birth chart is not fate — it is a precise map of your psychological architecture, emotional tendencies, and the timing of mental challenges.",
-              features: ["Full Kundali with Lagna, Moon sign, Nakshatra", "Moon Affliction Engine — Saturn, Rahu, Ketu, Mars", "Dasha system — why this is happening now", "Transit-mood correlation with current sky"],
-            },
-            {
-              icon: "🌿", num: "02", name: "Ayurveda", sanskrit: "आयुर्वेद — Science of Life",
-              desc: "The oldest medical system on Earth maps your mind-body constitution (Prakriti) with extraordinary precision. Your Dosha profile reveals exactly which foods, herbs, and routines heal your specific nervous system.",
-              features: ["Prakriti assessment — Vata, Pitta, Kapha mind type", "Dosha-Graha correlation (your chart meets your constitution)", "Personalized Dinacharya — daily healing routine", "Herbal & dietary protocols for your imbalance"],
-            },
-            {
-              icon: "📿", num: "03", name: "Sanskrit Wisdom", sanskrit: "संस्कृत — Refined Language",
-              desc: "Sanskrit is not a dead language — it is a living technology of consciousness. Shlokas are precision instruments tuned to specific emotional states. The right verse at the right moment rewires the mind.",
-              features: ["Curated shloka library mapped to emotional states", "Sanskrit with transliteration, meaning & audio", "Personalized verse recommendations from your chart", "Mantra protocols matched to your planetary remedies"],
-            },
-          ].map((p, i) => (
-            <div className="pillar-card reveal" key={p.name} style={{ transitionDelay: `${i * 0.15}s` }}>
-              <span className="pillar-icon">{p.icon}</span>
-              <span className="pillar-num">{p.num}</span>
-              <div className="pillar-name cinzel">{p.name}</div>
-              <div className="pillar-sanskrit cormorant">{p.sanskrit}</div>
-              <p className="pillar-desc">{p.desc}</p>
-              <ul className="pillar-features">
-                {p.features.map(f => <li key={f}>{f}</li>)}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="hiw-section">
-        <div className="hiw-inner">
-          <div className="hiw-header reveal">
-            <span className="section-tag">The Process</span>
-            <h2 className="section-title cormorant">Four steps to your complete<br /><em style={{ fontStyle: "italic", color: "var(--saffron-light)" }}>IKS wellness portrait</em></h2>
-          </div>
-          <div className="hiw-steps">
+          <div className="sciences">
             {[
-              { icon: "🔮", step: "Step 01", title: "Enter Your Birth Details", desc: "Date, time, and place of birth. This unlocks your complete Kundali — the planetary blueprint of your mind." },
-              { icon: "🌙", step: "Step 02", title: "Moon Analysis", desc: "We scan your Moon's sign, Nakshatra, house, and all planetary afflictions using our proprietary engine built on 450+ clinical observations." },
-              { icon: "🌿", step: "Step 03", title: "Prakriti Bridge", desc: "Your chart is mapped to your Ayurvedic constitution. Your Dosha profile is not guessed — it is derived directly from your planetary signature." },
-              { icon: "✨", step: "Step 04", title: "Your Wellness Plan", desc: "Personalized Dinacharya, herbs, planetary remedies, shlokas, and transit alerts — all calibrated to your unique mind-body-cosmos profile." },
+              { sk: 'ज्योतिष', num: '01', name: 'Jyotisha', eng: 'Planetary Science', desc: 'Your birth chart is not fate — it is a precise map of your psychological architecture. The Moon\'s position, its afflictions, and the Dasha system reveal exactly why your mind works the way it does.', role: 'Jyotisha reads your blueprint.' },
+              { sk: 'आयुर्वेद', num: '02', name: 'Ayurveda', eng: 'Science of Life', desc: 'Your Prakriti — your unique mind-body constitution — determines which foods, herbs and routines heal your specific nervous system. No generic advice. Your body. Your protocol.', role: 'Ayurveda heals your constitution.' },
+              { sk: 'योग', num: '03', name: 'Yoga', eng: 'Union', desc: 'Not generic yoga. Specific asana sequences and pranayama mapped to your Dosha and Moon affliction — for your imbalance, your nervous system, your healing.', role: 'Yoga steadies your nervous system.' },
+              { sk: 'मन्त्र', num: '04', name: 'Mantra', eng: 'Sound as Medicine', desc: 'Planetary mantras are precision instruments. The right mantra for your affliction, practiced with consistency, rewires deep mental patterns that no amount of thinking can reach.', role: 'Mantra rewires the patterns.' },
             ].map((s, i) => (
-              <div className="hiw-step reveal" key={s.step} style={{ transitionDelay: `${i * 0.15}s` }}>
-                <div className="step-circle">{s.icon}</div>
-                <span className="step-num">{s.step}</span>
-                <div className="step-title cormorant">{s.title}</div>
-                <p className="step-desc">{s.desc}</p>
+              <div className="science-card reveal" key={s.name} data-num={s.num} style={{ transitionDelay: `${i * 0.12}s` }}>
+                <span className="sc-sanskrit">{s.sk}</span>
+                <span className="sc-num">{s.num}</span>
+                <div className="sc-name">{s.name}</div>
+                <span className="sc-eng">{s.eng}</span>
+                <p className="sc-desc">{s.desc}</p>
+                <div className="sc-role">{s.role}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* MOON ENGINE */}
-      <section className="moon-section">
-        <div className="moon-inner">
-          <div className="moon-left reveal">
-            <span className="section-tag">The Core Engine</span>
-            <h2 className="section-title cormorant">The Moon<br />Affliction Engine</h2>
-            <p className="lead cormorant">
-              Built from 450+ real consultations. When Chandra is wounded, the mind suffers in precise, predictable ways. No other platform has mapped this.
-            </p>
-            <div className="affliction-list">
-              {afflictions.map(a => (
-                <div className="affliction-item" key={a.name}>
-                  <div className="aff-planet">{a.emoji}</div>
-                  <div className="aff-content">
-                    <div className="aff-title cinzel">{a.name}</div>
-                    <div className="aff-desc">{a.pattern} · Ayurveda: {a.ayurveda}</div>
-                  </div>
-                </div>
+      <ArchDivider from="#060E1A" to="#0D1F35" />
+
+      {/* ── SECTION 4: JOURNEY ── */}
+      <section className="journey">
+        <div className="journey-inner">
+          <div className="journey-header reveal">
+            <div className="sec-eyebrow">
+              <div className="sec-ey-line" />
+              <span className="sec-ey-text">Your healing journey</span>
+            </div>
+            <h2 className="sec-heading">
+              Your healing.<br />
+              Your pace.<br />
+              <em>Your choice.</em>
+            </h2>
+            <p>Tell us what you're carrying. We'll show you the path. You choose how to walk it.</p>
+          </div>
+
+          {/* Entry */}
+          <div className="entry-box reveal">
+            <div className="entry-label">What are you carrying right now?</div>
+            <div className="entry-problems">
+              {['Anxiety', 'Overthinking', 'Stress', 'Fear', 'Grief', 'Confusion', 'Insecurity', 'Lack of clarity', 'Emotional exhaustion'].map(p => (
+                <button
+                  key={p}
+                  className={`ep-btn ${activeProb === p ? 'active' : ''}`}
+                  onClick={() => setActiveProb(p)}
+                >{p}</button>
               ))}
             </div>
+            <div className="entry-note">
+              Select what resonates. SATTVA will build your personal path.
+              <span> Your profile is built from your answer.</span>
+            </div>
           </div>
-          <div className="moon-right reveal">
-            <div className="chart-mockup">
-              <div className="chart-header">
-                <span className="chart-label cinzel">Sample Chart Analysis</span>
-                <span className="chart-badge">Moon Afflicted</span>
-              </div>
-              <div className="chart-grid">
-                {[
-                  ["Lagna", "Vṛścika", "Scorpio Ascendant"],
-                  ["Chandra", "Kumbha", "11th House"],
-                  ["Nakshatra", "Śatabhiṣā", "Pada 2"],
-                  ["Current Dasha", "Shani–Rahu", "2024–2027"],
-                ].map(([k, v, s]) => (
-                  <div className="chart-cell" key={k}>
-                    <div className="cell-key">{k}</div>
-                    <div className="cell-val cormorant">{v} <span>· {s}</span></div>
-                  </div>
-                ))}
-              </div>
-              <div className="affliction-warning">
-                <div className="warning-title cinzel">⚠ Chandra Affliction Detected</div>
-                <div className="warning-text">
-                  Saturn aspects Moon from the 8th house. Rahu conjunct within 4°. This combination drives
-                  chronic anxiety, social withdrawal, and existential unease — amplified sharply during Shani–Rahu Dasha (now active).
-                </div>
-                <div className="insight-tags">
-                  {["Ashwagandha protocol", "Shankhpushpi", "Shani mantra", "Rahu remedies", "Vata-Kapha diet"].map(t => (
-                    <span className="tag" key={t}>{t}</span>
+
+          {/* Phases */}
+          <div className="phases-grid">
+            {[
+              {
+                num: '01', tag: 'free', icon: '🌙', title: 'Phase One',
+                subtitle: 'Know yourself. Begin healing.',
+                desc: 'We build your complete profile — your Moon sign, Prakriti, and the patterns your chart reveals. Then we give you your personal healing path across all four sciences.',
+                features: ['Prakriti assessment — your mind-body constitution', 'Moon & Nakshatra analysis', 'Personalised problem-to-practice mapping', 'Choose up to 4 healing practices', '30 days. One new practice unlocked each week'],
+                duration: '30 Days · Free'
+              },
+              {
+                num: '02', tag: 'paid', icon: '☿', title: 'Phase Two',
+                subtitle: 'Evolve your mind.',
+                desc: 'Beyond healing — becoming. Phase Two works on Mercury, the planet of thought. Structured thinking, philosophy, mental clarity. For those ready to build a mind that doesn\'t break.',
+                features: ['Mercury-based cognitive practices', 'Philosophy & structured thinking', 'Advanced pranayama protocols', 'Mental clarity rituals', 'Guided reflection practices'],
+                duration: 'After Phase 1 · Paid'
+              },
+              {
+                num: '03', tag: 'paid', icon: '🪬', title: 'Phase Three',
+                subtitle: 'One conversation. Everything changes.',
+                desc: 'Direct 1-on-1 with our Jyotishi. Your complete chart, your current Dasha, your specific struggles — read, understood, and answered in a single session.',
+                features: ['Full birth chart consultation', 'Current Dasha & transit reading', 'Personalised remedy prescription', 'Direct guidance from our Jyotishi', 'Available after Phase 1'],
+                duration: 'After Phase 1 · Paid'
+              },
+            ].map((ph, i) => (
+              <div className={`phase-card reveal ${ph.tag === 'paid' ? 'paid' : ''}`} key={ph.num} style={{ transitionDelay: `${i * 0.15}s` }}>
+                <div className="phase-num">{ph.num}</div>
+                <span className={`phase-tag ${ph.tag === 'free' ? 'free' : 'paid-tag'}`}>{ph.duration}</span>
+                <span className="phase-icon">{ph.icon}</span>
+                <div className="phase-title">{ph.title}</div>
+                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 17, fontStyle: 'italic', color: 'var(--moon)', marginBottom: 14 }}>{ph.subtitle}</div>
+                <p className="phase-desc">{ph.desc}</p>
+                <div className="phase-features">
+                  {ph.features.map(f => (
+                    <div className="pf-item" key={f}>
+                      <div className="pf-dot" />
+                      <span>{f}</span>
+                    </div>
                   ))}
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* 30 Day Journey */}
+          <div className="thirty-days reveal">
+            <div className="td-header">
+              <div className="td-title">The 30-Day Experience</div>
+              <p className="td-sub">Phase One doesn't overwhelm you. It builds you — one week, one practice at a time. Consistency over intensity. Always.</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SHLOKA LIBRARY */}
-      <section className="shloka-section">
-        <div className="shloka-inner">
-          <div className="shloka-header reveal">
-            <span className="section-tag">The Shloka Sanctuary</span>
-            <h2 className="section-title cormorant">Sanskrit verses, curated<br />for your emotional state</h2>
-          </div>
-          <div className="shloka-filters reveal">
-            {["All", "Anxiety", "Grief", "Anger", "Confusion", "Detachment"].map(f => (
-              <button
-                key={f}
-                className={`filter-btn ${activeFilter === f ? "active" : ""}`}
-                onClick={() => setActiveFilter(f)}
-              >{f}</button>
-            ))}
-          </div>
-          <div className="shloka-cards">
-            {shlokas.map((s, i) => (
-              <div className="shloka-card reveal" key={i} style={{ transitionDelay: `${i * 0.1}s` }}>
-                <span className="shloka-emotion cinzel">{s.emotion}</span>
-                <div className="shloka-text cormorant">{s.text}</div>
-                <div className="shloka-transliteration">{s.transliteration}</div>
-                <div className="shloka-meaning">{s.meaning}</div>
-                <span className="shloka-source cinzel">{s.source}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FOUNDER */}
-      <section className="founder-section">
-        <div className="founder-inner">
-          <div className="founder-portrait reveal">
-            <span className="portrait-icon">🪬</span>
-            <div className="portrait-rating cinzel">★ 9.8 / 10</div>
-          </div>
-          <div className="founder-content reveal">
-            <span className="section-tag">Built By A Practitioner</span>
-            <div className="founder-name cinzel">Jyotishi & Founder</div>
-            <div className="founder-title cormorant">Practicing Jyotisha Acharya · IKS Researcher</div>
-            <p className="founder-bio cormorant">
-              SATTVA was not built in a boardroom. It emerged from 450+ real consultations with people in genuine mental and emotional crisis — each one revealing the same truth: the Moon's afflictions were always speaking. Loudly. Nobody was listening with the right framework.
-            </p>
-            <p className="founder-bio cormorant" style={{ marginBottom: 0 }}>
-              Every pattern in this system — every Dosha-Graha mapping, every shloka pairing, every remedy recommendation — has been tested against real human suffering and real healing. This is not textbook IKS. This is clinical IKS.
-            </p>
-            <div className="founder-credentials" style={{ marginTop: 36 }}>
+            <div className="weeks">
               {[
-                ["450+", "Consultations"],
-                ["9.8 / 10", "Avg. Rating"],
-                ["5+", "Years Practice"],
-                ["3", "Ancient sciences unified"],
-              ].map(([n, l]) => (
-                <div className="credential" key={l}>
-                  <span className="cred-num cinzel">{n}</span>
-                  <div className="cred-label">{l}</div>
+                { num: 'Week 01', title: 'The First Step', desc: 'You don\'t need to do everything. You just need to begin. One practice. Chosen by you. Small enough to start. Powerful enough to matter. This week you plant the seed.' },
+                { num: 'Week 02', title: 'The First Shift', desc: 'Something has changed. You might not name it yet. But it\'s there. A second practice unlocks. The first one is now yours. You\'re building something real.' },
+                { num: 'Week 03', title: 'The Deepening', desc: 'This is where most people have given up before. Not here. Not anymore. A third practice enters your life. The noise is getting quieter. The clarity is getting closer.' },
+                { num: 'Week 04', title: 'The Arrival', desc: 'You came with a blank mind. Look at you now. Four practices. Thirty days. A routine that is entirely, completely, yours. This is just the beginning.' },
+              ].map((w, i) => (
+                <div className="week" key={w.num} style={{ transitionDelay: `${i * 0.1}s` }}>
+                  <span className="week-num">{w.num}</span>
+                  <div className="week-title">{w.title}</div>
+                  <p className="week-desc">{w.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="daily-loop">
+              {[
+                { icon: '🌅', time: 'Morning', action: 'Daily Check-in', detail: '"How are you feeling today?" — your practice for the day, based on your answer.' },
+                { icon: '🌙', time: 'Anytime', action: 'Moon Calendar', detail: "Today's Moon energy and what it means for your mind, your body, your practice." },
+                { icon: '🌌', time: 'Evening', action: 'Evening Reflection', detail: 'One question before you sleep. One moment to close the day with intention.' },
+              ].map((dl, i) => (
+                <div className="dl-item" key={dl.time}>
+                  <span className="dl-icon">{dl.icon}</span>
+                  <span className="dl-time">{dl.time}</span>
+                  <div className="dl-action">{dl.action}</div>
+                  <p className="dl-detail">{dl.detail}</p>
                 </div>
               ))}
             </div>
@@ -1485,36 +1420,100 @@ export default function SattvaLanding() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="cta-section">
-        <div className="cta-inner reveal">
-          <span className="section-tag">Begin</span>
-          <h2 className="section-title cormorant">
-            Your mind has a cosmic blueprint.<br />
-            <em>It's time to read it.</em>
-          </h2>
-          <p className="cta-sub cormorant">
-            Enter your birth details and receive a free Moon analysis —
-            the most precise lens ancient India developed for understanding the mind.
-          </p>
-          <div className="cta-btns">
-            <button className="btn-primary">Discover Your Chart — Free</button>
-            <button className="btn-secondary">Book a Consultation</button>
+      <ArchDivider from="#0D1F35" to="#112840" />
+
+      {/* ── SECTION 5: PROOF ── */}
+      <section className="proof">
+        <div className="proof-inner">
+          <div className="proof-visual reveal-left">
+            <div className="proof-frame">
+              <div className="proof-stats">
+                <div className="ps-item">
+                  <span className="ps-num">10,000+</span>
+                  <div className="ps-label">Consultations across our founding Jyotishis.<br />Real people. Real healing.</div>
+                </div>
+                <div className="ps-divider" />
+                <div className="ps-item">
+                  <span className="ps-num">5,000+</span>
+                  <div className="ps-label">Years of IKS wisdom distilled into one platform.</div>
+                </div>
+                <div className="ps-divider" />
+                <div className="ps-item">
+                  <span className="ps-num">4</span>
+                  <div className="ps-label">Ancient sciences. One complete system. Yours.</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="cta-note">No account required · Your data is never sold · Rooted in 5,000 years of IKS</div>
+          <div className="proof-content reveal-right">
+            <div className="sec-eyebrow">
+              <div className="sec-ey-line" />
+              <span className="sec-ey-text">Built on lived wisdom</span>
+            </div>
+            <h2 className="proof-headline">
+              Built on decades of wisdom.<br />
+              <em>Practiced on thousands of real lives.</em>
+            </h2>
+            <div className="proof-body">
+              <p>Not a startup. Not an algorithm. Not a team of designers who read about Ayurveda online.</p>
+              <p>SATTVA is built by <strong>practicing Jyotishis</strong> guided by masters with over <em>10,000 consultations each</em> — because the gap between ancient wisdom and the people who need it became impossible to ignore.</p>
+              <p>Every Moon affliction pattern. Every healing protocol. Every word on this platform — <strong>tested on real people, in real pain, with real results.</strong></p>
+            </div>
+            <div className="proof-result">
+              <span className="pr-label">What they say when they leave</span>
+              <div className="pr-words">
+                <span className="pr-word">Confident</span>
+                <span className="pr-sep">·</span>
+                <span className="pr-word">Happy</span>
+                <span className="pr-sep">·</span>
+                <span className="pr-word">Clear</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* FOOTER */}
+      <ArchDivider from="#112840" to="#060E1A" />
+
+      {/* ── SECTION 6: CTA ── */}
+      <section className="cta-section">
+        <div className="cta-arch" />
+        <div className="cta-arch-2" />
+        <div className="cta-inner reveal">
+          <span className="cta-moon">🌙</span>
+          <h2 className="cta-headline">
+            Whenever<br />
+            <em>you're ready.</em>
+          </h2>
+          <p className="cta-body">
+            There's no perfect moment to begin.<br />
+            There never is.<br /><br />
+            But you're here.<br />
+            And that's already <em>something.</em><br /><br />
+            Create your free account.<br />
+            Your journey starts gently — at your own pace, in your own time.
+          </p>
+          <div className="cta-btns">
+            <button className="btn-primary">Begin — it's free</button>
+            <button className="btn-ghost">Book a consultation</button>
+          </div>
+          <div className="cta-note">
+            <span>Free account required</span> · Your data is never sold ·
+            <span> Rooted in 5,000 years of IKS</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
       <footer>
         <div className="footer-inner">
-          <div className="footer-logo cinzel">SATTVA</div>
+          <div className="footer-brand">SATTVA<span>heals</span></div>
           <ul className="footer-links">
-            {["The System", "Moon Engine", "Shloka Library", "Consult", "About"].map(l => (
+            {['The System','Your Journey','Moon Engine','Shlokas','Consult','About'].map(l => (
               <li key={l}><a href="#">{l}</a></li>
             ))}
           </ul>
-          <div className="footer-copy">© 2026 SATTVA · All rights reserved</div>
+          <div className="footer-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
         </div>
       </footer>
     </>
