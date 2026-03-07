@@ -5,6 +5,7 @@ import HowItWorks from './HowItWorks'
 import About from './About'
 import NotFound from './NotFound'
 import Team from './Team'
+import Consult from './Consult'
 
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/team" element={<Team />} />
+        <Route path="/consult" element={<Consult />} />
       </Routes>
     </BrowserRouter>
   )
