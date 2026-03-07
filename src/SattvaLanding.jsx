@@ -1,5 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 
+// Safe navigation — works with or without React Router
+function useNav() {
+  let navigate = null;
+  try {
+    const { useNavigate } = require('react-router-dom');
+    navigate = useNavigate();
+  } catch(e) {}
+  return (path) => {
+    if (navigate) navigate(path);
+    else window.location.href = path;
+  };
+}
+
 const FONTS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');
 `;
@@ -1147,6 +1160,7 @@ export default function SattvaLanding() {
   const [scrolled, setScrolled] = useState(false);
   const [activeProb, setActiveProb] = useState(null);
   const scrollY = useParallax();
+  const navigate = useNav();
   useReveal();
 
   useEffect(() => {
@@ -1168,11 +1182,16 @@ export default function SattvaLanding() {
           <span className="nav-brand-sub">sattvaheals.in · Indian Knowledge System</span>
         </a>
         <ul className="nav-links">
-          {['The System','Your Journey','Proof','Begin'].map(l => (
-            <li key={l}><a href="#">{l}</a></li>
+          {[
+            ['The System', '/about'],
+            ['Your Journey', '/how-it-works'],
+            ['Proof', '/team'],
+            ['Begin', '/signup'],
+          ].map(([l, path]) => (
+            <li key={l}><a href="#" onClick={e => { e.preventDefault(); navigate(path); }}>{l}</a></li>
           ))}
         </ul>
-        <button className="nav-cta">Begin — it's free</button>
+        <button className="nav-cta" onClick={() => navigate('/signup')}>Begin — it's free</button>
       </nav>
 
       {/* ── SECTION 1: HERO ── */}
@@ -1194,8 +1213,8 @@ export default function SattvaLanding() {
             SATTVA doesn't either.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary">Begin — it's free</button>
-            <button className="btn-ghost">How it works</button>
+            <button className="btn-primary" onClick={() => navigate('/signup')}>Begin — it's free</button>
+            <button className="btn-ghost" onClick={() => navigate('/how-it-works')}>How it works</button>
           </div>
         </div>
         <div className="hero-right">
@@ -1494,8 +1513,8 @@ export default function SattvaLanding() {
             Your journey starts gently — at your own pace, in your own time.
           </p>
           <div className="cta-btns">
-            <button className="btn-primary">Begin — it's free</button>
-            <button className="btn-ghost">Book a consultation</button>
+            <button className="btn-primary" onClick={() => navigate('/signup')}>Begin — it's free</button>
+            <button className="btn-ghost" onClick={() => navigate('/consult')}>Book a consultation</button>
           </div>
           <div className="cta-note">
             <span>Free account required</span> · Your data is never sold ·
@@ -1509,8 +1528,15 @@ export default function SattvaLanding() {
         <div className="footer-inner">
           <div className="footer-brand">SATTVA<span>heals</span></div>
           <ul className="footer-links">
-            {['The System','Your Journey','Moon Engine','Shlokas','Consult','About'].map(l => (
-              <li key={l}><a href="#">{l}</a></li>
+            {[
+              ['The System', '/about'],
+              ['Your Journey', '/how-it-works'],
+              ['Moon Engine', '/about#moon'],
+              ['Shlokas', '/about#shlokas'],
+              ['Consult', '/consult'],
+              ['About', '/team'],
+            ].map(([l, path]) => (
+              <li key={l}><a href="#" onClick={e => { e.preventDefault(); navigate(path); }}>{l}</a></li>
             ))}
           </ul>
           <div className="footer-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
