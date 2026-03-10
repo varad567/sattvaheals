@@ -389,7 +389,7 @@ function MailTab({ users, consultations, settings, onOpenSettings }){
     { label: 'Consultation confirmed', subject: 'Your SATTVA consultation is confirmed', body: `Namaste,\n\nYour consultation request has been confirmed. Our Jyotishi will connect with you within 2 working days.\n\nPlease keep your birth details (date, time, place) ready for the session.\n\nWith light,\nSATTVA HEALS Team\nsattvaheals.in` },
     { label: 'Payment instructions', subject: 'Payment details — SATTVA consultation', body: `Namaste,\n\nThank you for booking with SATTVA HEALS. Here are your payment details:\n\nAmount: ₹899\nUPI: payment@sattvaheals.in\n\nKindly share the payment screenshot to confirm your booking.\n\nWith light,\nSATTVA HEALS Team` },
     { label: 'Session reminder', subject: 'Reminder — Your SATTVA session is tomorrow', body: `Namaste,\n\nA gentle reminder that your consultation is scheduled for tomorrow. Please keep your birth details ready.\n\nIf you need to reschedule, reply to this email.\n\nWith light,\nSATTVA HEALS Team\nsattvaheals.in` },
-    { label: 'Follow up', subject: 'Following up on your SATTVA journey', body: `Namaste,\n\nWe hope your healing journey has been going well since your session.\n\nIf you have any questions about the remedies or practices suggested, please feel free to reply to this email.\n\nWith light,\nSATTVA HEALS Team` },
+    { label: 'Follow up', subject: 'Following up on your SATTVA journey', body: `Namaste,\n\nWe hope your practice on SATTVA has been going well since your session.\n\nIf you have any questions about the remedies or practices suggested, please feel free to reply to this email.\n\nWith light,\nSATTVA HEALS Team` },
   ];
 
   const sendMail = async () => {

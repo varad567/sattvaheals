@@ -793,7 +793,7 @@ export default function SattvaLanding() {
           {[
             ['The System', '/about'],
             ['Your Journey', '/how-it-works'],
-            ['Proof', '/team'],
+            ['Our Jyotishis', '/team'],
           ].map(([l, path]) => (
             <li key={l}><a href="#" onClick={e => { e.preventDefault(); navigate(path); }}>{l}</a></li>
           ))}
@@ -966,10 +966,10 @@ export default function SattvaLanding() {
           <div className="journey-header reveal">
             <div className="sec-eyebrow">
               <div className="sec-ey-line" />
-              <span className="sec-ey-text">Your healing journey</span>
+              <span className="sec-ey-text">Your journey</span>
             </div>
             <h2 className="sec-heading">
-              Your healing.<br />
+              Your practice.<br />
               Your pace.<br />
               <em>Your choice.</em>
             </h2>
@@ -979,7 +979,7 @@ export default function SattvaLanding() {
           <div className="entry-box reveal">
             <div className="entry-label">What are you carrying right now?</div>
             <div className="entry-problems">
-              {['Anxiety', 'Overthinking', 'Stress', 'Fear', 'Grief', 'Confusion', 'Insecurity', 'Lack of clarity', 'Emotional exhaustion'].map(p => (
+              {['Anxiety', 'Aggression', 'Overthinking', 'Stress', 'Fear', 'Grief', 'Confusion', 'Insecurity', 'Lack of clarity', 'Emotional exhaustion'].map(p => (
                 <button key={p} className={`ep-btn ${activeProb === p ? 'active' : ''}`} onClick={() => setActiveProb(p)}>{p}</button>
               ))}
             </div>
@@ -991,9 +991,9 @@ export default function SattvaLanding() {
 
           <div className="phases-grid">
             {[
-              { num: '01', tag: 'free', icon: '🌙', title: 'Phase One', subtitle: 'Know yourself. Begin healing.', desc: 'We build your complete profile — your Moon sign, Prakriti, and the patterns your chart reveals. Then we give you your personal healing path across all four sciences.', features: ['Prakriti assessment — your mind-body constitution', 'Moon & Nakshatra analysis', 'Personalised problem-to-practice mapping', 'Choose up to 4 healing practices', '30 days. One new practice unlocked each week'], duration: '30 Days · Free' },
+              { num: '01', tag: 'free', icon: '🌙', title: 'Phase One', subtitle: 'Know yourself. Begin your practice.', desc: 'We build your complete profile — your Moon sign, Prakriti, and the patterns your chart reveals. Then we give you your personal path across all four sciences.', features: ['Prakriti assessment — your mind-body constitution', 'Moon & Nakshatra analysis', 'Personalised problem-to-practice mapping', 'Choose up to 4 practices', '30 days. One new practice unlocked each week'], duration: '30 Days · Free' },
               { num: '02', tag: 'paid', icon: '☿', title: 'Phase Two', subtitle: 'Evolve your mind.', desc: 'Beyond healing — becoming. Phase Two works on Mercury, the planet of thought. Structured thinking, philosophy, mental clarity. For those ready to build a mind that doesn\'t break.', features: ['Mercury-based cognitive practices', 'Philosophy & structured thinking', 'Advanced pranayama protocols', 'Mental clarity rituals', 'Guided reflection practices'], duration: 'After Phase 1 · Paid' },
-              { num: '03', tag: 'paid', icon: '🪬', title: 'Phase Three', subtitle: 'One conversation. Everything changes.', desc: 'Direct 1-on-1 with our Jyotishi. Your complete chart, your current Dasha, your specific struggles — read, understood, and answered in a single session.', features: ['Full birth chart consultation', 'Current Dasha & transit reading', 'Personalised remedy prescription', 'Direct guidance from our Jyotishi', 'Available after Phase 1'], duration: 'After Phase 1 · Paid' },
+              { num: '03', tag: 'paid', icon: '🪬', title: 'Phase Three', subtitle: 'One conversation. A clear path forward.', desc: 'Direct 1-on-1 with our Jyotishi. Your complete chart, your current Dasha, your specific struggles — read, understood, and answered in a single session.', features: ['Full birth chart consultation', 'Current Dasha & transit reading', 'Personalised remedy prescription', 'Direct guidance from our Jyotishi', 'Available after Phase 1'], duration: 'After Phase 1 · Paid' },
             ].map((ph, i) => (
               <div className={`phase-card reveal ${ph.tag === 'paid' ? 'paid' : ''}`} key={ph.num} style={{ transitionDelay: `${i * 0.15}s` }}>
                 <div className="phase-num">{ph.num}</div>
@@ -1055,8 +1055,8 @@ export default function SattvaLanding() {
             <div className="proof-frame">
               <div className="proof-stats">
                 <div className="ps-item">
-                  <span className="ps-num">10,000+</span>
-                  <div className="ps-label">Consultations across our founding Jyotishis.<br />Real people. Real healing.</div>
+                  <span className="ps-num">Thousands+</span>
+                  <div className="ps-label">Consultations across our founding Jyotishis.<br />Real people. Real journeys.</div>
                 </div>
                 <div className="ps-divider" />
                 <div className="ps-item">
@@ -1082,17 +1082,17 @@ export default function SattvaLanding() {
             </h2>
             <div className="proof-body">
               <p>Not a startup. Not an algorithm. Not a team of designers who read about Ayurveda online.</p>
-              <p>SATTVA is built by <strong>practicing Jyotishis</strong> guided by masters with over <em>10,000 consultations each</em> — because the gap between ancient wisdom and the people who need it became impossible to ignore.</p>
-              <p>Every Moon affliction pattern. Every healing protocol. Every word on this platform — <strong>tested on real people, in real pain, with real results.</strong></p>
+              <p>SATTVA is built by <strong>practicing Jyotishis</strong> guided by masters with experience across thousands of consultations — because the gap between ancient wisdom and the people who need it became impossible to ignore.</p>
+              <p>Every Moon affliction pattern. Every protocol. Every word on this platform — <strong>witnessed in real people, carrying real weight, over decades of practice.</strong></p>
             </div>
             <div className="proof-result">
-              <span className="pr-label">What they say when they leave</span>
+              <span className="pr-label">What we build toward</span>
               <div className="pr-words">
                 <span className="pr-word">Confident</span>
                 <span className="pr-sep">·</span>
-                <span className="pr-word">Happy</span>
-                <span className="pr-sep">·</span>
                 <span className="pr-word">Clear</span>
+                <span className="pr-sep">·</span>
+                <span className="pr-word">At peace</span>
               </div>
             </div>
           </div>
@@ -1117,7 +1117,7 @@ export default function SattvaLanding() {
             But you're here.<br />
             And that's already <em>something.</em><br /><br />
             {user
-              ? <>Welcome back, <em>{userName}.</em><br />Your healing continues — one practice at a time.</>
+              ? <>Welcome back, <em>{userName}.</em><br />Your practice continues — one step at a time.</>
               : <>Create your free account.<br />Your journey starts gently — at your own pace, in your own time.</>
             }
           </p>
@@ -1157,7 +1157,12 @@ export default function SattvaLanding() {
               <li key={l}><a href="#" onClick={e => { e.preventDefault(); navigate(path); }}>{l}</a></li>
             ))}
           </ul>
-          <div className="footer-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
+          <div className="footer-copy">
+            SATTVA provides traditional wellness content rooted in Ayurveda, Yoga, Jyotish, and Mantra.
+            It is not a medical service, mental health establishment, or substitute for professional care.
+            If you are experiencing a mental health crisis, call iCall: 9152987821.
+            {' '}· © 2026 SATTVA HEALS · sattvaheals.in
+          </div>
         </div>
       </footer>
     </>

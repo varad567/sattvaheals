@@ -305,7 +305,11 @@ function ConsultForm(){
   return(
     <>
       <div className="form-title">Book a <em>consultation.</em></div>
-      <p className="form-sub">Select your session type, share your details, and our team will reach out within 2 working days.</p>
+      <p className="form-sub">
+        This is a Jyotish (Vedic Astrology) wellness consultation — not a medical or psychological service.
+        For mental health crises, please contact iCall at 9152987821.
+        Select your session type, share your details, and our team will reach out within 2 working days.
+      </p>
 
       {/* Consultation type selector */}
       <div style={{marginBottom:24}}>
@@ -375,7 +379,7 @@ export default function Consult(){
       <section className="hero">
         <div className="eyebrow"><div className="ey-line"/><span className="ey-text">Book a Consultation</span><div className="ey-line"/></div>
         <h1 className="hero-title">One session.<br /><em>Your entire chart.</em></h1>
-        <p className="hero-sub">A personal consultation with Varad — your birth chart read in full, your Moon afflictions identified, your remedy path laid out. Built on 10,000+ consultations. One session for you.</p>
+        <p className="hero-sub">A personal Jyotish consultation with Varad — your birth chart read in full, your Moon afflictions identified, your remedy path laid out. Informed by thousands of consultations. One session for you.</p>
       </section>
 
       <Arch to="#0D1F35"/>
@@ -468,7 +472,12 @@ export default function Consult(){
       <footer>
         <div className="foot-inner">
           <div className="foot-brand">SATTVA <span>Heals</span></div>
-          <div className="foot-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
+          <div className="foot-copy">
+            SATTVA provides traditional wellness content rooted in Ayurveda, Yoga, Jyotish, and Mantra.
+            It is not a medical service, mental health establishment, or substitute for professional care.
+            If you are experiencing a mental health crisis, call iCall: 9152987821.
+            {' '}· © 2026 SATTVA HEALS · sattvaheals.in
+          </div>
         </div>
       </footer>
     </>

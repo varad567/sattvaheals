@@ -400,7 +400,7 @@ function LoginForm({ onSuccess }) {
   return (
     <div style={{animation:'fadeUp 0.6s ease both'}}>
       <div className="form-headline">Welcome<br /><em>back.</em></div>
-      <p className="form-sub">Your healing continues where you left it.</p>
+      <p className="form-sub">Your practice continues where you left it.</p>
 
       {alertMsg && (
         <div className={`alert ${alertMsg.startsWith('✓')?'alert-success':'alert-error'}`}>
@@ -454,7 +454,7 @@ function SuccessState({ name }) {
       <p className="success-body">
         Your space is ready.<br/>
         Now let's understand what you're carrying<br/>
-        — and build your healing path.
+        — and build your path of practice.
       </p>
       <div className="success-next">Next — Choose your path</div>
     </div>

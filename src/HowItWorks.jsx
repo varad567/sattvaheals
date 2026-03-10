@@ -305,7 +305,7 @@ const pillars = [
     body:[
       "Jyotisha is not fortune-telling. It is the most precise psychological mapping system the ancient world ever produced. Your birth chart is a snapshot of the sky at the moment of your arrival — and in that snapshot lives a complete description of how your mind works, what it fears, and where it finds peace.",
       {em:"The Moon — Chandra — is the planet of the mind. When Chandra is afflicted, the mind suffers in specific, predictable, treatable ways."},
-      {strong:"No other platform has mapped Moon afflictions to mental health outcomes this precisely."} , " SATTVA's engine is built from 10,000+ real consultations — not from textbooks.",
+      " SATTVA's Moon affliction mapping is built from thousands of real consultations — not from textbooks.",
     ],
     points:[
       {t:'Moon sign & Nakshatra',d:"Your Chandra placement reveals your emotional nature, triggers, and deepest psychological patterns — with a precision no personality test can match."},
@@ -340,7 +340,7 @@ const pillars = [
     badge:'Harvard · Stanford · NIMHANS validated',
     body:[
       "The yoga most people know is a fraction of what Yoga actually is. In its classical form, Yoga is a complete science of consciousness. Asanas and pranayama are tools for regulating the nervous system — not for flexibility.",
-      {em:"Anxiety lives in the nervous system. Fear lives in the body. Overthinking is a dysregulated breath."},
+      {em:"Anxiety lives in the nervous system. Fear lives in the body. Overthinking often lives in the breath — and Pranayama has known this for thousands of years."},
       " Stanford researchers found that cyclic sighing — a pranayama technique — outperformed meditation for reducing daily anxiety. ",{strong:"Ancient India knew. Now the labs agree."},
     ],
     points:[

@@ -299,8 +299,8 @@ export default function Team(){
       {/* HERO */}
       <section className="hero">
         <div className="eyebrow"><div className="ey-line"/><span className="ey-text">The Jyotishis</span><div className="ey-line"/></div>
-        <h1 className="hero-title">The people behind<br /><em>your healing.</em></h1>
-        <p className="hero-sub">SATTVA is not an algorithm. It is a living practice, built by a practicing Jyotishi — guided by masters, grounded in 10,000+ real consultations.</p>
+        <h1 className="hero-title">The people behind<br /><em>your practice.</em></h1>
+        <p className="hero-sub">SATTVA is not an algorithm. It is a living practice, built by a practicing Jyotishi — guided by masters, grounded in years of real consultations.</p>
       </section>
 
       <Arch to="#0D1F35"/>
@@ -314,8 +314,8 @@ export default function Team(){
                 <img src="/varad_team.jpg" alt="Varad Bidwai — Founder & Chief Jyotishi"/>
                 <div className="photo-overlay"/>
                 <div className="photo-badge">
-                  <div className="pb-num">10,000+</div>
-                  <div className="pb-label">Consultations</div>
+                  <div className="pb-num">Years</div>
+                  <div className="pb-label">of Jyotish practice</div>
                 </div>
               </div>
             </div>
@@ -329,8 +329,8 @@ export default function Team(){
 
               <div className="fc-stats">
                 {[
-                  { num:'10,000+', label:'Consultations' },
-                  { num:'2+', label:'Years of practice' },
+                  { num:'Years', label:'of Jyotish practice' },
+                  { num:'2+', label:'Years with SATTVA' },
                   { num:'3', label:'Guiding masters' },
                   { num:'4', label:'Sciences integrated' },
                 ].map((s,i)=>(
@@ -343,7 +343,7 @@ export default function Team(){
 
               <p className="fc-body">
                 SATTVA was not built in a boardroom. It was built one chart at a time,
-                one person at a time — across thousands of consultations where a pattern
+                one person at a time — across years of consultations where a pattern
                 became impossible to ignore.
               </p>
               <p className="fc-body" style={{marginTop:14}}>
@@ -356,7 +356,7 @@ export default function Team(){
               <div className="fc-quote">
                 <div className="fcq-text">
                   "I did not build SATTVA because I wanted to build a product.
-                  I built it because after 10,000 consultations, I could not
+                  I built it because after sitting with so many minds, I could not
                   <em> not</em> build it."
                 </div>
                 <div className="fcq-attr">— Varad Bidwai · Founder, SATTVA Heals</div>
@@ -441,7 +441,7 @@ export default function Team(){
       <section className="cta-section">
         <div className="cta-inner reveal">
           <h2 className="cta-title">Ready to begin<br /><em>your journey?</em></h2>
-          <p className="cta-body">10,000 consultations. 5,000 years of knowledge. One path — personalised entirely to you.</p>
+          <p className="cta-body">Years of consultations. 5,000 years of knowledge. One path — personalised entirely to you.</p>
           <div className="cta-btns">
             <button className="btn-primary" onClick={()=>window.location.href='/signup'}>Begin — it's free</button>
             <button className="btn-ghost" onClick={()=>window.location.href='/consult'}>Book a consultation</button>
@@ -452,7 +452,12 @@ export default function Team(){
       <footer>
         <div className="foot-inner">
           <div className="foot-brand">SATTVA <span>Heals</span></div>
-          <div className="foot-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
+          <div className="foot-copy">
+            SATTVA provides traditional wellness content rooted in Ayurveda, Yoga, Jyotish, and Mantra.
+            It is not a medical service, mental health establishment, or substitute for professional care.
+            If you are experiencing a mental health crisis, call iCall: 9152987821.
+            {' '}· © 2026 SATTVA HEALS · sattvaheals.in
+          </div>
         </div>
       </footer>
     </>

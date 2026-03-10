@@ -383,7 +383,10 @@ export default function About() {
                 <em>The treatment gap is not a failure of people. It is a failure of the system.</em>
               </p>
               <p className="sec-body" style={{marginTop:16}}>
-                <strong>SATTVA is not a supplement to that system. It is a replacement of the premise.</strong>
+                <strong>
+                  SATTVA is not built on the premise that something is wrong with you. It is built
+                  on the premise that something in you already knows the way back.
+                </strong>
               </p>
             </div>
             <div className="reveal-right">
@@ -556,10 +559,10 @@ export default function About() {
           </div>
           <div className="vision-grid reveal">
             {[
-              { year:'2026', title:'The foundation.', body:'Phase 1 live. 30-day personalised healing journeys for free. Jyotisha, Ayurveda, Yoga and Mantra — woven into a daily practice that anyone in India can access from their phone.' },
+              { year:'2026', title:'The foundation.', body:'Phase 1 live. 30-day personalised journeys for free. Jyotisha, Ayurveda, Yoga and Mantra — woven into a daily practice that anyone in India can access from their phone.' },
               { year:'2027', title:'The mind evolution.', body:'Phase 2 launches. Mercury work — structured thinking, philosophy, mental clarity. For those who have completed Phase 1 and are ready to go deeper than symptom relief.' },
               { year:'2028', title:'The human layer.', body:'A network of trained IKS wellness practitioners — Jyotishis, Ayurvedic counsellors, Yoga therapists — available for 1-on-1 consultations through SATTVA for those who need human guidance.' },
-              { year:'2030', title:'A new standard for India.', body:"SATTVA as India's definitive mental wellness platform — one million active healing journeys, a practitioner network across every state, and IKS recognised globally as a complete system of mind science." },
+              { year:'2030', title:'A new standard for India.', body:"SATTVA as India's definitive mental wellness platform — a practitioner network across every state, and IKS recognised globally as a complete system of mind science." },
             ].map((v, i) => (
               <div className="vision-card" key={i}>
                 <div className="vc-year">{v.year}</div>
@@ -592,7 +595,12 @@ export default function About() {
       <footer>
         <div className="foot-inner">
           <div className="foot-brand">SATTVA <span>Heals</span></div>
-          <div className="foot-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
+          <div className="foot-copy">
+            SATTVA provides traditional wellness content rooted in Ayurveda, Yoga, Jyotish, and Mantra.
+            It is not a medical service, mental health establishment, or substitute for professional care.
+            If you are experiencing a mental health crisis, call iCall: 9152987821.
+            {' '}· © 2026 SATTVA HEALS · sattvaheals.in
+          </div>
         </div>
       </footer>
     </>

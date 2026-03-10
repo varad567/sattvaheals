@@ -101,8 +101,8 @@ const sections = [
     id:'overview', num:'01', title:'Overview',
     content: [
       { type:'body', text:'This Privacy Policy describes how SATTVA HEALS ("SATTVA", "we", "our", or "us") collects, uses, and protects your personal information when you use our platform at sattvaheals.in.' },
-      { type:'body', text:'We take your privacy seriously. Your birth data, your struggles, your healing journey — these are deeply personal. We treat them that way.' },
-      { type:'highlight', text:<><strong>The short version:</strong> We collect only what we need to personalise your healing. We never sell your data. We never share it with advertisers. Your birth details are yours.</> },
+      { type:'body', text:'We take your privacy seriously. Your birth data, your struggles, your journey on SATTVA — these are deeply personal. We treat them that way.' },
+      { type:'highlight', text:<><strong>The short version:</strong> We collect only what we need to personalise your practice on SATTVA. We never sell your data. We never share it with advertisers. Your birth details are yours.</> },
       { type:'body', text:'By using SATTVA, you agree to the practices described in this policy. If you have any questions, contact us at privacy@sattvaheals.in.' },
     ]
   },
@@ -131,8 +131,8 @@ const sections = [
     content: [
       { type:'body', text:'Every piece of information we collect has a specific, limited purpose.' },
       { type:'list', items:[
-        'Your birth data is used solely to calculate your Jyotisha birth chart and generate personalised healing recommendations',
-        'Your email is used to send account-related communications and, with your consent, healing reminders',
+        'Your birth data is used solely to calculate your Jyotisha birth chart and generate personalised practice recommendations',
+        'Your email is used to send account-related communications and, with your consent, gentle reminders related to your practice',
         'Your issue selections personalise your dashboard, practice recommendations, and Moon calendar guidance',
         'Consultation form data is used to prepare for and conduct your personal session with our Jyotishi',
         'Usage data helps us understand how to improve the platform experience',
@@ -148,7 +148,7 @@ const sections = [
         'Birth data is stored encrypted in our secure database',
         'It is used only for chart calculation and personalisation within SATTVA',
         'It is never shared with any third party for any reason',
-        'It is never used for any purpose other than your healing journey on SATTVA',
+        'It is never used for any purpose other than your journey on SATTVA',
         'You may request deletion of your birth data at any time',
       ]},
       { type:'highlight', text:<><strong>For personal consultations:</strong> Birth data shared during a 1-on-1 consultation with our Jyotishi is used only for that session. It is handled personally, not stored on the platform, and never shared.</> },
@@ -305,7 +305,12 @@ export default function Privacy(){
       <footer>
         <div className="foot-inner">
           <div className="foot-brand">SATTVA <span>Heals</span></div>
-          <div className="foot-copy">© 2026 SATTVA HEALS · sattvaheals.in</div>
+          <div className="foot-copy">
+            SATTVA provides traditional wellness content rooted in Ayurveda, Yoga, Jyotish, and Mantra.
+            It is not a medical service, mental health establishment, or substitute for professional care.
+            If you are experiencing a mental health crisis, call iCall: 9152987821.
+            {' '}· © 2026 SATTVA HEALS · sattvaheals.in
+          </div>
         </div>
       </footer>
     </>
