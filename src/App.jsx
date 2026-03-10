@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import SattvaLanding from './SattvaLanding'
+import Onboarding from './Onboarding'
 import SattvaAuth from './SattvaAuth'
 import HowItWorks from './HowItWorks'
 import About from './About'
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/" element={<SattvaLanding user={user} />} />
         <Route path="/signup" element={<SattvaAuth defaultTab="signup" />} />
         <Route path="/login" element={<SattvaAuth defaultTab="login" />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/about" element={<About />} />
         <Route path="/team" element={<Team />} />

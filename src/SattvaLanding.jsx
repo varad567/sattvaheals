@@ -592,13 +592,13 @@ const css = `
   .cta-note span { color: var(--moon-dim); }
 
   footer { background: rgba(0,0,0,0.5); border-top: 1px solid rgba(168,204,224,0.06); padding: 0 72px; height: 72px; display: flex; align-items: center; }
-  .footer-inner { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
   .footer-brand { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--pearl); letter-spacing: 4px; text-transform: uppercase; line-height: 1; }
   .footer-brand span { color: var(--gold); font-style: italic; }
   .footer-links { display: flex; gap: 28px; list-style: none; align-items: center; }
   .footer-links a { font-size: 11px; letter-spacing: 2px; color: var(--pearl-dim); text-decoration: none; text-transform: uppercase; transition: color 0.3s; font-weight: 400; line-height: 1; }
   .footer-links a:hover { color: var(--moon); }
-  .footer-copy { font-size: 11px; color: rgba(139,175,196,0.3); line-height: 1; white-space: nowrap; }
+  .footer-copy { font-size: 10px; color: rgba(139,175,196,0.6); line-height: 1.5; text-align: right; max-width: 420px; }
 
   @media (max-width: 960px) {
     nav, nav.scrolled { padding: 14px 24px; }
@@ -613,7 +613,8 @@ const css = `
     .daily-loop { grid-template-columns: 1fr; }
     .problem, .solution, .journey, .proof, .cta-section { padding: 80px 24px; }
     footer { padding: 40px 24px; height: auto; }
-    .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
+    .footer-inner { flex-direction: column; gap: 16px; text-align: center; align-items: center; }
+    .footer-copy { text-align: center; max-width: 100%; }
     body { cursor: auto; }
     .cursor, .cursor-ring { display: none; }
   }
