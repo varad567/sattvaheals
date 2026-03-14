@@ -804,6 +804,7 @@ export default function SattvaLanding() {
         {user ? (
           <div className="nav-user">
             <span className="nav-user-name">🌙 {userName}</span>
+            <button className="nav-signout" style={{marginRight:8}} onClick={() => navigate('/dashboard')}>My Space</button>
             <button className="nav-signout" onClick={handleSignOut}>Sign out</button>
           </div>
         ) : (
@@ -844,7 +845,7 @@ export default function SattvaLanding() {
           <div className="hero-ctas">
             {user ? (
               <>
-                <button className="btn-primary" onClick={() => navigate('/how-it-works')}>Continue your journey</button>
+                <button className="btn-primary" onClick={() => navigate('/dashboard')}>Continue your journey</button>
                 <button className="btn-ghost" onClick={() => navigate('/consult')}>Book a consultation</button>
               </>
             ) : (
@@ -1125,7 +1126,7 @@ export default function SattvaLanding() {
           <div className="cta-btns">
             {user ? (
               <>
-                <button className="btn-primary" onClick={() => navigate('/how-it-works')}>Continue your journey</button>
+                <button className="btn-primary" onClick={() => navigate('/dashboard')}>Continue your journey</button>
                 <button className="btn-ghost" onClick={() => navigate('/consult')}>Book a consultation</button>
               </>
             ) : (

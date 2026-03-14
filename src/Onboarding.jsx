@@ -821,6 +821,22 @@ export default function Onboarding() {
   const [saveError, setSaveError] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const pending = sessionStorage.getItem('sattva_pending_result');
+    if (!pending) return;
+    try {
+      const data = JSON.parse(pending);
+      sessionStorage.removeItem('sattva_pending_result');
+      if (data.prakriti)        setPrakriti(data.prakriti);
+      if (data.concern)         setConcern(data.concern);
+      if (data.duration)        setDuration(data.duration);
+      if (data.priorExperience) setPriorExperience(data.priorExperience);
+      if (data.safetyAnswer)    setSafetyAnswer(data.safetyAnswer);
+      if (data.prakritiAnswers) setPrakritiAnswers(data.prakritiAnswers);
+      if (data.pendingStep)     setStep(data.pendingStep);
+    } catch(e) {}
+  }, []); // runs once on mount
+
   // Smooth step transition
   const goToStep = (next) => {
     if(transitioning) return;
@@ -879,7 +895,20 @@ export default function Onboarding() {
     setSaving(true); setSaveError('');
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if(!session) { navigate('/login?redirect=/onboarding&saved=pending'); return; }
+      if (!session) {
+        // Save all answers before leaving so we can restore them after login
+        sessionStorage.setItem('sattva_pending_result', JSON.stringify({
+          prakriti,
+          concern,
+          duration,
+          priorExperience,
+          safetyAnswer,
+          prakritiAnswers,
+          pendingStep: 16  // bring them back to the protocol screen
+        }));
+        navigate('/login?redirect=/onboarding&saved=pending');
+        return;
+      }
       const primaryD = prakriti?.split('-')[0] || 'vata';
       const protocol = protocols[concern]?.[primaryD];
       const { error } = await supabase.from('assessment_results').upsert({

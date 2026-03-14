@@ -198,7 +198,7 @@ export default function ResetPassword() {
     if (error) { setAlertMsg(error.message); return; }
     setSuccess(true);
     // Redirect to home after 3 seconds
-    setTimeout(() => { window.location.href = '/'; }, 3000);
+    setTimeout(() => { window.location.href = '/dashboard'; }, 3000);
   };
 
   const goToLogin = () => { window.location.href = '/login'; };
