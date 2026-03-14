@@ -467,7 +467,16 @@ export default function SattvaAuth({ defaultTab = 'signup' }) {
   const [success, setSuccess] = useState(false);
   const [userName, setUserName] = useState('');
 
-  const handleSuccess = (name) => { setUserName(name); setSuccess(true); };
+  const handleSuccess = (name) => {
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get('redirect');
+    if (redirectTo) {
+      window.location.href = redirectTo;
+      return;
+    }
+    setUserName(name);
+    setSuccess(true);
+  };
 
   return (
     <>
