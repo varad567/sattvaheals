@@ -1,0 +1,727 @@
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from './supabase';
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');`;
+
+const css = `
+  :root {
+    --abyss:#060E1A; --deep:#0D1F35; --surface:#112840;
+    --moon:#A8CCE0; --moon-dim:#6B95AE;
+    --gold:#E2C27D; --gold-dim:#B89A55;
+    --pearl:#D8EEF8; --pearl-dim:#8BAFC4;
+    --green:#6ECBA0; --red:#E07070;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--abyss);color:var(--pearl);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;min-height:100vh;}
+  body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:998;opacity:0.4;}
+  .cursor{width:8px;height:8px;background:var(--moon);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:left 0.06s,top 0.06s;}
+  .cursor-ring{width:28px;height:28px;border:1px solid rgba(168,204,224,0.3);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left 0.14s ease-out,top 0.14s ease-out;}
+
+  .bc-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,14,26,0.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(168,204,224,0.06);}
+  .bc-nav-brand{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--pearl);letter-spacing:4px;text-transform:uppercase;cursor:pointer;}
+  .bc-nav-brand span{color:var(--gold);}
+  .bc-nav-back{background:none;border:none;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--pearl-dim);cursor:pointer;display:flex;align-items:center;gap:10px;transition:color 0.2s;font-family:'Outfit',sans-serif;}
+  .bc-nav-back::before{content:'';width:20px;height:1px;background:currentColor;transition:width 0.2s;}
+  .bc-nav-back:hover{color:var(--moon);}
+  .bc-nav-back:hover::before{width:28px;}
+
+  .bc-wrap{min-height:100vh;padding:96px 48px 80px;max-width:1100px;margin:0 auto;position:relative;z-index:10;}
+
+  .bc-fadein{opacity:0;transform:translateY(16px);animation:bcFade 0.55s cubic-bezier(0.4,0,0.2,1) forwards;}
+  @keyframes bcFade{to{opacity:1;transform:translateY(0);}}
+  .bc-d0{animation-delay:0s;} .bc-d1{animation-delay:0.08s;} .bc-d2{animation-delay:0.16s;} .bc-d3{animation-delay:0.24s;}
+
+  .bc-hero{margin-bottom:48px;}
+  .bc-eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--moon-dim);margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+  .bc-eyebrow::before{content:'';width:24px;height:1px;background:var(--gold-dim);}
+  .bc-heading{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);font-weight:400;color:var(--pearl);line-height:1.1;margin-bottom:14px;}
+  .bc-heading em{color:var(--gold);font-style:italic;}
+  .bc-subhead{font-size:15px;color:var(--pearl-dim);line-height:1.8;max-width:500px;}
+
+  /* Form */
+  .bc-form-card{background:rgba(13,31,53,0.7);border:1px solid rgba(168,204,224,0.08);border-radius:18px;padding:36px 32px;backdrop-filter:blur(10px);max-width:640px;}
+  .bc-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .bc-field{display:flex;flex-direction:column;gap:6px;}
+  .bc-field.full{grid-column:1/-1;}
+  .bc-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--pearl-dim);}
+  .bc-input{background:rgba(6,14,26,0.8);border:1px solid rgba(168,204,224,0.12);border-radius:8px;padding:12px 14px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--pearl);outline:none;transition:border-color 0.2s;width:100%;}
+  .bc-input:focus{border-color:rgba(168,204,224,0.4);}
+  .bc-input::placeholder{color:var(--pearl-dim);opacity:0.5;}
+  .bc-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6);}
+  .bc-input[type=time]::-webkit-calendar-picker-indicator{filter:invert(0.6);}
+  .bc-input-note{font-size:11px;color:var(--pearl-dim);opacity:0.6;margin-top:2px;}
+
+  .bc-btn{padding:14px 40px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all 0.3s;margin-top:24px;}
+  .bc-btn-primary{background:linear-gradient(135deg,rgba(226,194,125,0.15),rgba(226,194,125,0.05));border:1px solid rgba(226,194,125,0.35);color:var(--gold);}
+  .bc-btn-primary:hover{border-color:var(--gold);background:rgba(226,194,125,0.1);box-shadow:0 0 24px rgba(226,194,125,0.1);}
+  .bc-btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+  .bc-btn-secondary{background:transparent;border:1px solid rgba(168,204,224,0.15);color:var(--pearl-dim);padding:10px 24px;font-size:10px;letter-spacing:2px;}
+  .bc-btn-secondary:hover{border-color:var(--moon-dim);color:var(--moon);}
+  .bc-error{font-size:12px;color:var(--red);margin-top:10px;}
+
+  /* Chart section */
+  .bc-chart-wrap{margin-top:48px;}
+  .bc-chart-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:32px;}
+  .bc-chart-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--pearl);}
+  .bc-chart-title span{color:var(--gold-dim);font-size:16px;margin-left:12px;font-family:'Noto Serif Devanagari',serif;}
+
+  .bc-toggle{display:flex;gap:0;border:1px solid rgba(168,204,224,0.12);border-radius:4px;overflow:hidden;}
+  .bc-toggle-btn{padding:8px 20px;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:'Outfit',sans-serif;cursor:pointer;background:transparent;border:none;color:var(--pearl-dim);transition:all 0.2s;}
+  .bc-toggle-btn.active{background:rgba(168,204,224,0.1);color:var(--moon);}
+
+  .bc-chart-grid{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:start;}
+
+  /* South Indian chart */
+  .si-chart{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);width:400px;height:400px;border:1px solid rgba(168,204,224,0.2);flex-shrink:0;}
+  .si-cell{border:1px solid rgba(168,204,224,0.12);padding:6px 8px;display:flex;flex-direction:column;gap:2px;position:relative;min-height:90px;}
+  .si-cell.empty{background:rgba(13,31,53,0.3);}
+  .si-cell.center{background:rgba(6,14,26,0.5);display:flex;align-items:center;justify-content:center;}
+  .si-sign{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--moon-dim);opacity:0.7;}
+  .si-lagna-mark{font-size:8px;color:var(--gold);opacity:0.8;position:absolute;bottom:4px;right:6px;}
+  .si-planets{display:flex;flex-direction:column;gap:1px;}
+  .si-planet{font-size:11px;color:var(--pearl);line-height:1.4;}
+  .si-planet.retro{color:var(--gold-dim);}
+  .si-center-text{font-family:'Noto Serif Devanagari',serif;font-size:28px;color:rgba(226,194,125,0.15);}
+
+  /* North Indian chart */
+  .ni-chart{position:relative;width:400px;height:400px;flex-shrink:0;}
+  .ni-svg{width:400px;height:400px;}
+
+  /* Planet table */
+  .bc-table-section{flex:1;}
+  .bc-section-label{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--moon-dim);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+  .bc-section-label::before{content:'';width:16px;height:1px;background:var(--gold-dim);}
+
+  .bc-planet-table{width:100%;border-collapse:collapse;margin-bottom:28px;}
+  .bc-planet-table th{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--pearl-dim);padding:6px 12px;text-align:left;border-bottom:1px solid rgba(168,204,224,0.08);}
+  .bc-planet-table td{font-size:13px;color:var(--pearl-dim);padding:9px 12px;border-bottom:1px solid rgba(168,204,224,0.05);line-height:1.4;}
+  .bc-planet-table td:first-child{color:var(--pearl);font-weight:400;}
+  .bc-planet-table td.sign{color:var(--moon);}
+  .bc-planet-table td.nak{color:var(--pearl-dim);font-size:12px;}
+  .bc-planet-table td.retro{color:var(--gold-dim);}
+  .bc-planet-table tr:last-child td{border-bottom:none;}
+  .bc-planet-table tr.lagna-row td{color:var(--gold);}
+  .bc-planet-table tr.lagna-row td:first-child{color:var(--gold);}
+
+  /* Dasha */
+  .bc-dasha-card{background:rgba(13,31,53,0.6);border:1px solid rgba(168,204,224,0.08);border-radius:14px;padding:20px 22px;margin-bottom:16px;}
+  .bc-dasha-current{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);margin-bottom:4px;}
+  .bc-dasha-dates{font-size:12px;color:var(--pearl-dim);margin-bottom:14px;}
+  .bc-dasha-table{width:100%;border-collapse:collapse;}
+  .bc-dasha-table td{font-size:12px;color:var(--pearl-dim);padding:5px 8px;border-bottom:1px solid rgba(168,204,224,0.04);}
+  .bc-dasha-table td:first-child{color:var(--pearl);}
+  .bc-dasha-table tr.current-dasha td{color:var(--gold-dim);}
+  .bc-dasha-table tr:last-child td{border-bottom:none;}
+
+  /* Nakshatra card */
+  .bc-nak-card{background:rgba(13,31,53,0.6);border:1px solid rgba(168,204,224,0.08);border-radius:14px;padding:20px 22px;}
+  .bc-nak-name{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--moon);margin-bottom:4px;}
+  .bc-nak-sk{font-family:'Noto Serif Devanagari',serif;font-size:14px;color:var(--moon-dim);display:block;margin-bottom:8px;}
+  .bc-nak-detail{font-size:13px;color:var(--pearl-dim);line-height:1.7;}
+
+  /* Save strip */
+  .bc-save-strip{margin-top:32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .bc-save-note{font-size:12px;color:var(--pearl-dim);opacity:0.7;}
+
+  @media(max-width:900px){
+    .bc-chart-grid{grid-template-columns:1fr;}
+    .bc-nav{padding:0 20px;}
+    .bc-wrap{padding:88px 20px 60px;}
+    .bc-form-grid{grid-template-columns:1fr;}
+    .si-chart,.ni-chart,.ni-svg{width:320px;height:320px;}
+  }
+  @media(max-width:400px){
+    .si-chart,.ni-chart,.ni-svg{width:280px;height:280px;}
+  }
+`;
+
+/* ─────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────── */
+const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SIGNS_SK = ['मेष','वृष','मिथुन','कर्क','सिंह','कन्या','तुला','वृश्चिक','धनु','मकर','कुम्भ','मीन'];
+const SIGN_ABBR = ['Ar','Ta','Ge','Ca','Le','Vi','Li','Sc','Sa','Cp','Aq','Pi'];
+
+const NAKSHATRAS = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'];
+const NAKSHATRA_SK = ['अश्विनी','भरणी','कृत्तिका','रोहिणी','मृगशिरा','आर्द्रा','पुनर्वसु','पुष्य','आश्लेषा','मघा','पूर्व फाल्गुनी','उत्तर फाल्गुनी','हस्त','चित्रा','स्वाति','विशाखा','अनुराधा','ज्येष्ठा','मूल','पूर्व आषाढ़','उत्तर आषाढ़','श्रवण','धनिष्ठा','शतभिषा','पूर्व भाद्रपद','उत्तर भाद्रपद','रेवती'];
+const NAKSHATRA_LORDS = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury','Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury','Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+
+const DASHA_LORDS = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+const DASHA_YEARS = [7,20,6,10,7,18,16,19,17];
+const DASHA_ORDER = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+
+const PLANET_ABBR = { sun:'Su', moon:'Mo', mercury:'Me', venus:'Ve', mars:'Ma', jupiter:'Ju', saturn:'Sa', rahu:'Ra', ketu:'Ke', lagna:'As' };
+const PLANET_NAMES = { sun:'Sun', moon:'Moon', mercury:'Mercury', venus:'Venus', mars:'Mars', jupiter:'Jupiter', saturn:'Saturn', rahu:'Rahu', ketu:'Ketu', lagna:'Lagna' };
+const PLANET_SK = { sun:'सूर्य', moon:'चन्द्र', mercury:'बुध', venus:'शुक्र', mars:'मंगल', jupiter:'गुरु', saturn:'शनि', rahu:'राहु', ketu:'केतु', lagna:'लग्न' };
+
+/* ─────────────────────────────────────────
+   CALCULATION ENGINE
+───────────────────────────────────────── */
+function dateToJD(year, month, day, hour, min) {
+  if (month <= 2) { year -= 1; month += 12; }
+  const A = Math.floor(year / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  const dayFrac = day + (hour + min / 60) / 24;
+  return Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + dayFrac + B - 1524.5;
+}
+
+function getLahiriAyanamsha(jd) {
+  const T = (jd - 2451545.0) / 36525.0;
+  return 23.85 + 0.0137 * T;
+}
+
+function toSidereal(tropical, ayanamsha) {
+  return ((tropical - ayanamsha) % 360 + 360) % 360;
+}
+
+function getPlanetPositions(jd) {
+  const T = (jd - 2451545.0) / 36525.0;
+  const r = Math.PI / 180;
+
+  const sunL = 280.46646 + 36000.76983 * T;
+  const sunM = (357.52911 + 35999.05029 * T) * r;
+  const sun = ((sunL + (1.914602 - 0.004817*T)*Math.sin(sunM) + 0.019993*Math.sin(2*sunM)) % 360 + 360) % 360;
+
+  const moonL = 218.3165 + 481267.8813 * T;
+  const moonM = (134.9634 + 477198.8676 * T) * r;
+  const moonD = (297.8502 + 445267.1115 * T) * r;
+  const moon = ((moonL + 6.2886*Math.sin(moonM) + 1.274*Math.sin(2*moonD-moonM) + 0.6583*Math.sin(2*moonD) + 0.2136*Math.sin(2*moonM)) % 360 + 360) % 360;
+
+  const mercL = 252.2509 + 149472.6674 * T;
+  const mercM = (174.7948 + 149472.5153 * T) * r;
+  const mercury = ((mercL + 23.44*Math.sin(mercM) + 2.98*Math.sin(2*mercM) + 0.44*Math.sin(3*mercM)) % 360 + 360) % 360;
+
+  const venL = 181.9798 + 58517.8156 * T;
+  const venM = (50.4161 + 58517.8039 * T) * r;
+  const venus = ((venL + 0.7758*Math.sin(venM) + 0.0033*Math.sin(2*venM)) % 360 + 360) % 360;
+
+  const marL = 355.433 + 19140.2993 * T;
+  const marM = (19.373 + 19140.3023 * T) * r;
+  const mars = ((marL + 10.691*Math.sin(marM) + 0.6228*Math.sin(2*marM) + 0.0503*Math.sin(3*marM)) % 360 + 360) % 360;
+
+  const jupL = 34.3515 + 3034.9057 * T;
+  const jupM = (20.9441 + 3034.9057 * T) * r;
+  const jupiter = ((jupL + 5.5549*Math.sin(jupM) + 0.1683*Math.sin(2*jupM)) % 360 + 360) % 360;
+
+  const satL = 50.0774 + 1222.1138 * T;
+  const satM = (317.0207 + 1222.1138 * T) * r;
+  const saturn = ((satL + 6.3585*Math.sin(satM) + 0.2204*Math.sin(2*satM)) % 360 + 360) % 360;
+
+  const rahu = ((125.0445 - 1934.1363 * T) % 360 + 360) % 360;
+  const ketu = (rahu + 180) % 360;
+
+  return { sun, moon, mercury, venus, mars, jupiter, saturn, rahu, ketu };
+}
+
+function getLagnaLongitude(jd, lat, lon) {
+  const T = (jd - 2451545.0) / 36525.0;
+  const GST = ((280.46061837 + 360.98564736629*(jd-2451545) + 0.000387933*T*T) % 360 + 360) % 360;
+  const LST = ((GST + lon) % 360 + 360) % 360;
+  const eps = (23.439291111 - 0.013004167*T) * Math.PI / 180;
+  const lstRad = LST * Math.PI / 180;
+  const latRad = lat * Math.PI / 180;
+  const ascRad = Math.atan2(Math.cos(lstRad), -(Math.sin(lstRad)*Math.cos(eps) + Math.tan(latRad)*Math.sin(eps)));
+  return ((ascRad * 180 / Math.PI) + 360) % 360;
+}
+
+function calculateChart(dateStr, timeStr, lat, lon) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hLocal, mLocal] = timeStr.split(':').map(Number);
+  // Convert IST (UTC+5:30) to UTC
+  const utcHour = hLocal - 5.5;
+  const utcH = Math.floor(((utcHour % 24) + 24) % 24);
+  const utcM = mLocal;
+  const dayAdj = utcHour < 0 ? day - 1 : day;
+
+  const jd = dateToJD(year, month, dayAdj, utcH, utcM);
+  const ayan = getLahiriAyanamsha(jd);
+  const tropical = getPlanetPositions(jd);
+  const lagnaT = getLagnaLongitude(jd, lat, lon);
+
+  const planets = {};
+  Object.entries(tropical).forEach(([k, v]) => {
+    planets[k] = toSidereal(v, ayan);
+  });
+  planets.lagna = toSidereal(lagnaT, ayan);
+
+  // Nakshatra & Dasha
+  const moonNakIdx = Math.floor(planets.moon / (360/27));
+  const moonNak = NAKSHATRAS[moonNakIdx];
+  const moonNakSk = NAKSHATRA_SK[moonNakIdx];
+  const moonNakLord = NAKSHATRA_LORDS[moonNakIdx];
+
+  const dashLordIdx = moonNakIdx % 9;
+  const dashLord = DASHA_LORDS[dashLordIdx];
+  const nakProgress = (planets.moon % (360/27)) / (360/27);
+  const remainYears = DASHA_YEARS[dashLordIdx] * (1 - nakProgress);
+
+  // Birth date as JS Date for dasha timeline
+  const birthDate = new Date(`${dateStr}T${timeStr}`);
+  const dashaStart = new Date(birthDate.getTime() - (DASHA_YEARS[dashLordIdx] - remainYears) * 365.25 * 24*60*60*1000);
+
+  // Build full dasha sequence from birth dasha
+  const dashaSeq = [];
+  let cursor = dashaStart;
+  let startIdx = DASHA_ORDER.indexOf(dashLord);
+  for(let i = 0; i < 9; i++) {
+    const idx = (startIdx + i) % 9;
+    const lord = DASHA_ORDER[idx];
+    const yrs = DASHA_YEARS[DASHA_LORDS.indexOf(lord)];
+    const end = new Date(cursor.getTime() + yrs * 365.25 * 24*60*60*1000);
+    dashaSeq.push({ lord, start: new Date(cursor), end });
+    cursor = end;
+  }
+
+  return { planets, ayan, moonNak, moonNakSk, moonNakLord, moonNakIdx, dashLord, remainYears, dashaSeq, jd };
+}
+
+/* ─────────────────────────────────────────
+   GEOCODING (OpenStreetMap Nominatim — free)
+───────────────────────────────────────── */
+async function geocodePlace(place) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`;
+  const res = await fetch(url, { headers: { 'Accept-Language':'en' } });
+  const data = await res.json();
+  if(data.length === 0) throw new Error('Place not found');
+  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), display: data[0].display_name };
+}
+
+/* ─────────────────────────────────────────
+   SOUTH INDIAN CHART
+   Fixed sign positions (Aries always top-left cell)
+   Lagna moves based on Lagna sign
+───────────────────────────────────────── */
+// SI layout: 4x4 grid, center 4 cells empty
+// Sign positions in grid (row, col), 0-indexed
+const SI_POSITIONS = [
+  [0,0],[0,1],[0,2],[0,3],
+  [1,3],[2,3],[3,3],
+  [3,2],[3,1],[3,0],
+  [2,0],[1,0]
+]; // Signs 0 (Aries) through 11 (Pisces)
+
+function SouthIndianChart({ planets }) {
+  // For each of 12 cells, figure out which sign it is and what planets are there
+  const lagnaSign = Math.floor(planets.lagna / 30);
+
+  const cells = SI_POSITIONS.map((pos, signIdx) => {
+    const planetsHere = Object.entries(planets)
+      .filter(([k, v]) => Math.floor(v / 30) === signIdx)
+      .map(([k]) => k);
+    return { pos, signIdx, planets: planetsHere, isLagna: signIdx === lagnaSign };
+  });
+
+  const grid = Array(4).fill(null).map(() => Array(4).fill(null));
+  cells.forEach(cell => { grid[cell.pos[0]][cell.pos[1]] = cell; });
+
+  return (
+    <div className="si-chart">
+      {grid.flat().map((cell, i) => {
+        if(!cell) {
+          return (
+            <div key={i} className="si-cell center">
+              <div className="si-center-text">ॐ</div>
+            </div>
+          );
+        }
+        return (
+          <div key={i} className="si-cell">
+            <div className="si-sign">{SIGN_ABBR[cell.signIdx]}</div>
+            <div className="si-planets">
+              {cell.planets.map(p => (
+                <div key={p} className={`si-planet ${p==='rahu'||p==='ketu'?'retro':''}`}>
+                  {PLANET_ABBR[p]}
+                  {p==='lagna' ? '' : ` ${(planets[p] % 30).toFixed(0)}°`}
+                </div>
+              ))}
+            </div>
+            {cell.isLagna && <div className="si-lagna-mark">Asc</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   NORTH INDIAN CHART (SVG diamond style)
+───────────────────────────────────────── */
+function NorthIndianChart({ planets }) {
+  const SIZE = 400;
+  const C = SIZE / 2;
+  const lagnaSign = Math.floor(planets.lagna / 30);
+
+  // 12 house triangles, house 1 = top center, going clockwise
+  // Each house triangle vertices
+  const houseVertices = [
+    [[C,0],[0,0],[C,C]],           // H1 top-left triangle
+    [[C,0],[C,C],[SIZE,0]],        // H2 top-right triangle
+    [[SIZE,0],[C,C],[SIZE,C]],     // H3 right-top triangle
+    [[SIZE,C],[C,C],[SIZE,SIZE]],  // H4 right-bottom triangle
+    [[SIZE,SIZE],[C,C],[C,SIZE]],  // H5 bottom-right triangle
+    [[C,SIZE],[C,C],[0,SIZE]],     // H6 bottom-left triangle
+    [[0,SIZE],[C,C],[0,C]],        // H7 left-bottom triangle
+    [[0,C],[C,C],[0,0]],           // H8 left-top triangle
+    // Inner diamond = center
+    // Actually North Indian has specific layout — use this simplified version
+  ];
+
+  // Simpler North Indian: 12 triangular regions around center diamond
+  const r = C * 0.95;
+  // House label centers (approximate)
+  const labelPositions = [
+    {x:C, y:C*0.3},      // H1 top
+    {x:C*1.6, y:C*0.3},  // H2
+    {x:C*1.7, y:C},      // H3 right
+    {x:C*1.6, y:C*1.7},  // H4
+    {x:C, y:C*1.7},      // H5 bottom
+    {x:C*0.4, y:C*1.7},  // H6
+    {x:C*0.3, y:C},      // H7 left
+    {x:C*0.4, y:C*0.3},  // H8
+    {x:C*0.85, y:C*0.6}, // H9 inner
+    {x:C*1.15, y:C*0.6}, // H10 inner
+    {x:C*1.15, y:C*1.4}, // H11 inner
+    {x:C*0.85, y:C*1.4}, // H12 inner
+  ];
+
+  // For each house, which sign occupies it?
+  const houseSign = (houseNum) => ((lagnaSign + houseNum) % 12);
+
+  // For each sign, what planets are there?
+  const planetsInSign = (signIdx) =>
+    Object.entries(planets).filter(([k,v]) => Math.floor(v/30) === signIdx).map(([k]) => k);
+
+  return (
+    <svg className="ni-svg" viewBox={`0 0 ${SIZE} ${SIZE}`}>
+      {/* Outer square */}
+      <rect x="0" y="0" width={SIZE} height={SIZE} fill="none" stroke="rgba(168,204,224,0.2)" strokeWidth="1"/>
+      {/* Diagonals */}
+      <line x1="0" y1="0" x2={SIZE} y2={SIZE} stroke="rgba(168,204,224,0.15)" strokeWidth="0.8"/>
+      <line x1={SIZE} y1="0" x2="0" y2={SIZE} stroke="rgba(168,204,224,0.15)" strokeWidth="0.8"/>
+      {/* Midpoints cross */}
+      <line x1={C} y1="0" x2={C} y2={SIZE} stroke="rgba(168,204,224,0.1)" strokeWidth="0.5"/>
+      <line x1="0" y1={C} x2={SIZE} y2={C} stroke="rgba(168,204,224,0.1)" strokeWidth="0.5"/>
+      {/* Inner diamond */}
+      <polygon points={`${C},${C*0.5} ${C*1.5},${C} ${C},${C*1.5} ${C*0.5},${C}`} fill="rgba(13,31,53,0.4)" stroke="rgba(168,204,224,0.2)" strokeWidth="0.8"/>
+
+      {/* House sign labels and planets */}
+      {[...Array(12)].map((_, i) => {
+        const sign = houseSign(i);
+        const pls = planetsInSign(sign);
+        const lp = labelPositions[i];
+        return (
+          <g key={i}>
+            <text x={lp.x} y={lp.y - 8} textAnchor="middle" fill="rgba(168,204,224,0.4)" fontSize="9" fontFamily="Outfit,sans-serif" letterSpacing="1">
+              {SIGN_ABBR[sign]}
+            </text>
+            {pls.slice(0,3).map((p, pi) => (
+              <text key={p} x={lp.x} y={lp.y + 6 + pi*13} textAnchor="middle"
+                fill={p==='lagna'?'#E2C27D': p==='rahu'||p==='ketu'?'#B89A55':'#D8EEF8'}
+                fontSize="11" fontFamily="Outfit,sans-serif" fontWeight="400">
+                {PLANET_ABBR[p]}
+              </text>
+            ))}
+          </g>
+        );
+      })}
+
+      {/* Center: Lagna sign */}
+      <text x={C} y={C+6} textAnchor="middle" fill="rgba(226,194,125,0.2)" fontSize="22" fontFamily="Noto Serif Devanagari,serif">ॐ</text>
+    </svg>
+  );
+}
+
+/* ─────────────────────────────────────────
+   PLANET TABLE
+───────────────────────────────────────── */
+function PlanetTable({ planets }) {
+  const rows = ['lagna','sun','moon','mercury','venus','mars','jupiter','saturn','rahu','ketu'];
+  return (
+    <table className="bc-planet-table">
+      <thead>
+        <tr>
+          <th>Planet</th>
+          <th>Sanskrit</th>
+          <th>Sign</th>
+          <th>Degree</th>
+          <th>Nakshatra</th>
+          <th>Lord</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(p => {
+          const deg = planets[p];
+          const signIdx = Math.floor(deg / 30);
+          const degInSign = (deg % 30).toFixed(1);
+          const nakIdx = Math.floor(deg / (360/27));
+          const nak = NAKSHATRAS[nakIdx];
+          const nakLord = NAKSHATRA_LORDS[nakIdx];
+          const isRetro = p === 'rahu' || p === 'ketu';
+          return (
+            <tr key={p} className={p==='lagna'?'lagna-row':''}>
+              <td>{PLANET_NAMES[p]}</td>
+              <td style={{fontFamily:'Noto Serif Devanagari,serif',fontSize:12,color:'var(--moon-dim)'}}>{PLANET_SK[p]}</td>
+              <td className="sign">{SIGNS[signIdx]}</td>
+              <td className={isRetro?'retro':''}>{degInSign}°{isRetro?' ℞':''}</td>
+              <td className="nak">{p==='lagna'?'—':nak}</td>
+              <td style={{fontSize:12,color:'var(--pearl-dim)',opacity:0.7}}>{p==='lagna'?'—':nakLord}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+/* ─────────────────────────────────────────
+   DASHA TABLE
+───────────────────────────────────────── */
+function DashaTable({ dashaSeq, birthDate }) {
+  const now = new Date();
+  const formatDate = (d) => d.toLocaleDateString('en-IN', { month:'short', year:'numeric' });
+
+  return (
+    <div className="bc-dasha-card">
+      <div className="bc-section-label">Vimshottari Dasha</div>
+      <table className="bc-dasha-table">
+        <tbody>
+          {dashaSeq.map((d, i) => {
+            const isCurrent = now >= d.start && now < d.end;
+            return (
+              <tr key={i} className={isCurrent?'current-dasha':''}>
+                <td>{d.lord}{isCurrent?' ◆':''}</td>
+                <td>{formatDate(d.start)}</td>
+                <td>→</td>
+                <td>{formatDate(d.end)}</td>
+                <td style={{textAlign:'right',opacity:0.5,fontSize:11}}>{DASHA_YEARS[DASHA_LORDS.indexOf(d.lord)]} yrs</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   SUBCOMPONENTS
+───────────────────────────────────────── */
+function StarField() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current; if(!canvas) return;
+    let ctx; try{ctx=canvas.getContext('2d');}catch(e){return;}
+    let W=canvas.width=window.innerWidth, H=canvas.height=window.innerHeight;
+    const onResize=()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;};
+    window.addEventListener('resize',onResize);
+    const stars=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+0.2,dx:(Math.random()-0.5)*0.06,dy:-Math.random()*0.08-0.02,o:Math.random()*0.3+0.07,ts:Math.random()*0.01+0.003,to:Math.random()*Math.PI*2}));
+    let frame=0,id;
+    const draw=()=>{ctx.clearRect(0,0,W,H);frame++;stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(168,204,224,${s.o*(Math.sin(frame*s.ts+s.to)*0.3+0.7)})`;ctx.fill();s.x+=s.dx;s.y+=s.dy;if(s.y<-5){s.y=H+5;s.x=Math.random()*W;}if(s.x<-5)s.x=W+5;if(s.x>W+5)s.x=-5;});id=requestAnimationFrame(draw);};
+    draw();
+    return()=>{cancelAnimationFrame(id);window.removeEventListener('resize',onResize);};
+  },[]);
+  return <canvas ref={ref} style={{position:'fixed',top:0,left:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:1,opacity:0.5}}/>;
+}
+
+function Cursor() {
+  const dot=useRef(null),ring=useRef(null);
+  useEffect(()=>{
+    const mv=e=>{if(dot.current){dot.current.style.left=e.clientX+'px';dot.current.style.top=e.clientY+'px';}if(ring.current){ring.current.style.left=e.clientX+'px';ring.current.style.top=e.clientY+'px';}};
+    window.addEventListener('mousemove',mv);return()=>window.removeEventListener('mousemove',mv);
+  },[]);
+  return <><div className="cursor" ref={dot}/><div className="cursor-ring" ref={ring}/></>;
+}
+
+/* ─────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────── */
+export default function BirthChart() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ date:'', time:'', place:'' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [chartData, setChartData] = useState(null);
+  const [chartStyle, setChartStyle] = useState('south'); // 'south' | 'north'
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+  }, []);
+
+  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  const handleGenerate = async () => {
+    if(!form.date || !form.time || !form.place) { setError('Please fill in all three fields.'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      const { lat, lon, display } = await geocodePlace(form.place);
+      const data = calculateChart(form.date, form.time, lat, lon);
+      setChartData({ ...data, lat, lon, display, form: { ...form } });
+      window.scrollTo({ top: 600, behavior: 'smooth' });
+    } catch(e) {
+      setError('Could not find that location. Try being more specific — e.g. "Pune, Maharashtra, India"');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if(!user) { navigate('/login?redirect=/birth-chart'); return; }
+    if(saving || saved || !chartData) return;
+    setSaving(true);
+    try {
+      const { error: dbErr } = await supabase.from('birth_charts').upsert({
+        user_id: user.id,
+        birth_date: chartData.form.date,
+        birth_time: chartData.form.time,
+        birth_place: chartData.form.place,
+        latitude: chartData.lat,
+        longitude: chartData.lon,
+        lagna_sign: SIGNS[Math.floor(chartData.planets.lagna / 30)],
+        moon_nakshatra: chartData.moonNak,
+        birth_dasha: chartData.dashLord,
+        planet_positions: JSON.stringify(chartData.planets),
+        created_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if(dbErr) throw dbErr;
+      setSaved(true);
+    } catch(e) {
+      console.error(e);
+      setError('Could not save chart. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <style>{FONTS+css}</style>
+      <Cursor/>
+      <StarField/>
+
+      <nav className="bc-nav">
+        <div className="bc-nav-brand" onClick={() => navigate('/')}>SATTVA <span>Heals</span></div>
+        <button className="bc-nav-back" onClick={() => navigate('/dashboard')}>Dashboard</button>
+      </nav>
+
+      <div className="bc-wrap">
+
+        {/* Hero */}
+        <div className="bc-hero bc-fadein bc-d0">
+          <div className="bc-eyebrow">Jyotisha</div>
+          <div className="bc-heading">Your <em>birth chart</em></div>
+          <div className="bc-subhead">
+            Enter your birth details to generate your complete Jyotish chart —
+            Lagna, all 9 grahas, Nakshatras, and Vimshottari Dasha sequence.
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className="bc-form-card bc-fadein bc-d1">
+          <div className="bc-form-grid">
+            <div className="bc-field">
+              <label className="bc-label">Date of birth</label>
+              <input className="bc-input" type="date" name="date" value={form.date} onChange={handleChange}/>
+            </div>
+            <div className="bc-field">
+              <label className="bc-label">Time of birth</label>
+              <input className="bc-input" type="time" name="time" value={form.time} onChange={handleChange}/>
+              <div className="bc-input-note">Enter in IST (India Standard Time)</div>
+            </div>
+            <div className="bc-field full">
+              <label className="bc-label">Place of birth</label>
+              <input className="bc-input" type="text" name="place" value={form.place} onChange={handleChange}
+                placeholder="e.g. Pune, Maharashtra, India"/>
+              <div className="bc-input-note">Be specific — include city, state, and country</div>
+            </div>
+          </div>
+          {error && <div className="bc-error">{error}</div>}
+          <button className="bc-btn bc-btn-primary" onClick={handleGenerate} disabled={loading}>
+            {loading ? 'Calculating…' : 'Generate Chart →'}
+          </button>
+        </div>
+
+        {/* Chart output */}
+        {chartData && (
+          <div className="bc-chart-wrap bc-fadein bc-d2">
+
+            <div className="bc-chart-header">
+              <div>
+                <div className="bc-chart-title">
+                  {SIGNS[Math.floor(chartData.planets.lagna / 30)]} Lagna
+                  <span>{SIGNS_SK[Math.floor(chartData.planets.lagna / 30)]}</span>
+                </div>
+                <div style={{fontSize:12,color:'var(--pearl-dim)',marginTop:4}}>
+                  {chartData.form.place} · {chartData.form.date} · {chartData.form.time} IST
+                </div>
+              </div>
+              <div className="bc-toggle">
+                <button className={`bc-toggle-btn ${chartStyle==='south'?'active':''}`} onClick={()=>setChartStyle('south')}>South Indian</button>
+                <button className={`bc-toggle-btn ${chartStyle==='north'?'active':''}`} onClick={()=>setChartStyle('north')}>North Indian</button>
+              </div>
+            </div>
+
+            <div className="bc-chart-grid">
+              {/* Chart */}
+              {chartStyle === 'south'
+                ? <SouthIndianChart planets={chartData.planets}/>
+                : <NorthIndianChart planets={chartData.planets}/>
+              }
+
+              {/* Right panel */}
+              <div className="bc-table-section">
+
+                {/* Nakshatra */}
+                <div className="bc-section-label" style={{marginBottom:10}}>Moon nakshatra</div>
+                <div className="bc-nak-card" style={{marginBottom:24}}>
+                  <div className="bc-nak-name">{chartData.moonNak}</div>
+                  <span className="bc-nak-sk">{chartData.moonNakSk}</span>
+                  <div className="bc-nak-detail">
+                    Lord: <span style={{color:'var(--moon)'}}>{chartData.moonNakLord}</span>
+                    &nbsp;·&nbsp;
+                    Moon at {(chartData.planets.moon % 30).toFixed(1)}° {SIGNS[Math.floor(chartData.planets.moon/30)]}
+                  </div>
+                </div>
+
+                {/* Dasha */}
+                <DashaTable dashaSeq={chartData.dashaSeq} birthDate={chartData.form.date}/>
+
+              </div>
+            </div>
+
+            {/* Full planet table */}
+            <div style={{marginTop:40}}>
+              <div className="bc-section-label" style={{marginBottom:12}}>All planets</div>
+              <PlanetTable planets={chartData.planets}/>
+            </div>
+
+            {/* Save */}
+            <div className="bc-save-strip">
+              <button className="bc-btn bc-btn-primary" onClick={handleSave} disabled={saving||saved}>
+                {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save chart to my account'}
+              </button>
+              <button className="bc-btn bc-btn-secondary" onClick={() => setChartData(null)}>
+                New chart
+              </button>
+              <div className="bc-save-note">
+                {user ? 'Saved charts appear in your dashboard.' : 'You need to be logged in to save.'}
+              </div>
+            </div>
+
+            {/* Disclaimer */}
+            <div style={{marginTop:28,fontSize:11,color:'rgba(139,175,196,0.4)',fontStyle:'italic',lineHeight:1.7,maxWidth:640}}>
+              This chart is calculated using the Lahiri ayanamsha (Chitrapaksha) and Whole Sign houses — the standard system used in classical Jyotisha. Planet positions are approximate and intended for spiritual and educational guidance. For a detailed personalised reading, book a consultation with our Jyotishi.
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </>
+  );
+}
