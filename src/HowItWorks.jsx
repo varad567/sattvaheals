@@ -345,7 +345,7 @@ const pillars = [
     ],
     points:[
       {t:'Dosha-specific sequences',d:'Vata, Pitta, and Kapha each require fundamentally different practices. Yours is built for your constitution — not a generic sequence.'},
-      {t:'Pranayama as medicine',d:'Controlled breathwork directly regulates the autonomic nervous system, reducing cortisol and activating the parasympathetic response — measurably, within minutes.'},
+      {t:'Pranayama as medicine',d:'Controlled breathwork directly regulates the autonomic nervous system, reducing cortisol and activating the parasympathetic response.'},
       {t:'Progressive weekly practice',d:'Each week of Phase 1 introduces a new element. By week four you have a complete practice that is personal — and sustainable.'},
     ],
     cite:"Stanford University's 2023 study found cyclic sighing (a pranayama technique) reduced anxiety significantly more than mindfulness meditation. Harvard's Benson-Henry Institute has studied yogic breathing's impact on the relaxation response for over 30 years.",

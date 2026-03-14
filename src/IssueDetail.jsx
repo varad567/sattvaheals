@@ -202,7 +202,7 @@ const ISSUE_DATA = {
     jyotish:{
       planet:'Moon',
       sk:'चन्द्र',
-      text:'In Jyotish, the Moon governs Manas — the mind itself. A weakened, afflicted, or poorly placed Moon directly creates the conditions for anxiety. Rahu conjunct or aspecting the Moon amplifies fear and creates an obsessive quality to anxious thinking. The 4th house governs inner peace; afflictions here disturb the foundation of emotional safety.',
+      text:'In Jyotish, the Moon governs Manas — the mind itself. A weakened, afflicted, or poorly placed Moon is associated with the conditions for anxiety. Rahu conjunct or aspecting the Moon amplifies fear and creates an obsessive quality to anxious thinking. The 4th house governs inner peace; afflictions here disturb the foundation of emotional safety.',
       indicators:['Moon in Scorpio or debilitated in Virgo (Neecha)','Rahu conjunct or aspecting Moon','4th house lord weakened or under malefic influence','Moon in 6th, 8th, or 12th house without benefic support'],
     },
 
@@ -331,7 +331,7 @@ const ISSUE_DATA = {
       items:[
         { icon:'🕉', text:'Mahamrityunjaya Mantra — 108 repetitions each morning. The mantra of liberation from depletion' },
         { icon:'⏰', text:'Fixed meal times, fixed wake time — Vata stress is directly worsened by irregularity' },
-        { icon:'🥛', text:'Ashwagandha milk (consult BAMS before use) — the primary Ayurvedic adaptogen for stress restoration' },
+        { icon:'🥛', text:'Ashwagandha milk — educational only, consult a qualified BAMS physician before use — the primary Ayurvedic adaptogen for stress restoration' },
         { icon:'⏸', text:'Two 5-minute stillness breaks in the working day — scheduled, non-negotiable' },
         { icon:'📵', text:'No work calls after 7pm — the boundary that stops the day from consuming the night' },
       ],
@@ -348,7 +348,7 @@ const ISSUE_DATA = {
 
     ayurveda:{
       heading:'What Ayurveda sees',
-      para1:'Vishada is the Ayurvedic term for low mood — a state of heaviness, absence of motivation, and disconnection from meaning. It is not the same as clinical depression, though it sits on the same continuum. In Ayurvedic understanding, Vishada is primarily a Kapha disorder involving the quality of Tamas — inertia, darkness, heaviness.',
+      para1:'Vishada is the Ayurvedic term for low mood — a state of heaviness, absence of motivation, and disconnection from meaning. It is not a clinical diagnosis. In Ayurvedic understanding, Vishada is primarily a Kapha disorder involving the quality of Tamas — inertia, darkness, heaviness.',
       para2:'When Kapha is severely aggravated, Tamas predominates in the mind. Tamas is one of the three Gunas — the qualities of nature. It is the quality of inertia, darkness, and resistance to change. In the Tamas state, the mind becomes like a clouded sky — unable to access the light that is still there.',
       para3:'In secondary Vata low mood, the pattern is depletion rather than heaviness. The Vata person whose lightness and creativity have been exhausted experiences a hollowness — the scaffolding of their usual aliveness has collapsed. This requires restoration, not activation.',
     },
@@ -630,6 +630,11 @@ export default function IssueDetail() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div style={{marginTop:48, padding:'20px 48px', borderTop:'1px solid rgba(168,204,224,0.07)', fontSize:12, color:'var(--pearl-dim)', fontStyle:'italic', lineHeight:1.7}}>
+          This content is rooted in traditional Ayurvedic and Jyotish wisdom and is intended for educational purposes only. It is not medical advice, diagnosis, or treatment. If you are experiencing a mental health crisis, please contact iCall on 9152987821 or Vandrevala Foundation on 1860-2662-345. Consult a qualified BAMS physician before making changes to diet or beginning any herbal practice.
         </div>
 
       </div>

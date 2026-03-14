@@ -690,7 +690,7 @@ export default function Dashboard() {
               {[
                 { icon:'🌿', title:'Ayurveda', sk:'आयुर्वेद', text:'The science of life. Understand your body-mind constitution and what it needs to come back to balance.' },
                 { icon:'🪐', title:'Jyotish', sk:'ज्योतिष', text:'Vedic astrology. The planetary patterns in your birth chart explain why certain tendencies feel inescapable.' },
-                { icon:'🕉', title:'Mantra', sk:'मन्त्र', text:'Sound as medicine. Specific mantras prescribed for your Dosha and concern create measurable shifts in the nervous system.' },
+                { icon:'🕉', title:'Mantra', sk:'मन्त्र', text:'Sound as medicine. Specific mantras prescribed for your Dosha and concern work on the nervous system.' },
               ].map((c, i) => (
                 <div key={i} className="db-general-card">
                   <span className="db-general-icon">{c.icon}</span>

@@ -46,11 +46,11 @@ export default function App() {
         <Route path="/consult" element={<Consult />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<NotFound />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/issues" element={<Issues />} />
-        <Route path="/issues/:id" element={<IssueDetail />} />
+        <Route path="/issues/:slug" element={<IssueDetail />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
