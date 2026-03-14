@@ -470,12 +470,9 @@ export default function SattvaAuth({ defaultTab = 'signup' }) {
   const handleSuccess = (name) => {
     const params = new URLSearchParams(window.location.search);
     const redirectTo = params.get('redirect');
-    if (redirectTo) {
-      window.location.href = redirectTo;
-      return;
-    }
-    setUserName(name);
-    setSuccess(true);
+    if (redirectTo) { window.location.href = redirectTo; return; }
+    // After login with no redirect → go to dashboard
+    window.location.href = '/dashboard';
   };
 
   return (
