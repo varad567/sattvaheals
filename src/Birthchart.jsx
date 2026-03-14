@@ -125,7 +125,18 @@ const css = `
   .bc-save-strip{margin-top:32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
   .bc-save-note{font-size:12px;color:var(--pearl-dim);opacity:0.7;}
 
-  @media(max-width:900px){
+  /* Location autocomplete */
+  .bc-place-wrap{position:relative;}
+  .bc-place-dropdown{position:absolute;top:100%;left:0;right:0;z-index:50;background:rgba(13,31,53,0.98);border:1px solid rgba(168,204,224,0.2);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;backdrop-filter:blur(16px);}
+  .bc-place-option{padding:10px 14px;font-size:13px;color:var(--pearl-dim);cursor:pointer;border-bottom:1px solid rgba(168,204,224,0.05);transition:background 0.15s;line-height:1.4;}
+  .bc-place-option:last-child{border-bottom:none;}
+  .bc-place-option:hover{background:rgba(168,204,224,0.08);color:var(--pearl);}
+  .bc-place-option strong{color:var(--moon);font-weight:500;font-size:13px;}
+  .bc-place-loading{padding:10px 14px;font-size:12px;color:var(--pearl-dim);opacity:0.6;}
+
+  /* DD/MM/YYYY grid */
+  .bc-date-grid{display:grid;grid-template-columns:80px 80px 110px;gap:8px;}
+  .bc-date-sep{display:flex;align-items:flex-end;padding-bottom:12px;color:var(--pearl-dim);opacity:0.4;font-size:18px;justify-content:center;}
     .bc-chart-grid{grid-template-columns:1fr;}
     .bc-nav{padding:0 20px;}
     .bc-wrap{padding:88px 20px 60px;}
@@ -169,7 +180,8 @@ function dateToJD(year, month, day, hour, min) {
 
 function getLahiriAyanamsha(jd) {
   const T = (jd - 2451545.0) / 36525.0;
-  return 23.85 + 0.0137 * T;
+  // Lahiri ayanamsha — matches Jagannatha Hora and standard references
+  return 23.85 + 0.01396 * T * 100 - 0.00000308 * T * T * 100;
 }
 
 function toSidereal(tropical, ayanamsha) {
@@ -589,32 +601,81 @@ function Cursor() {
 ───────────────────────────────────────── */
 export default function BirthChart() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ date:'', time:'', place:'' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  // DD / MM / YYYY separate fields
+  const [day, setDay]     = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear]   = useState('');
+  const [time, setTime]   = useState('');
+
+  // Location autocomplete
+  const [placeQuery, setPlaceQuery]       = useState('');
+  const [placeSuggestions, setPlaceSugg]  = useState([]);
+  const [selectedPlace, setSelectedPlace] = useState(null); // { display, lat, lon }
+  const [placeLoading, setPlaceLoading]   = useState(false);
+  const placeDebounce = useRef(null);
+
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
   const [chartData, setChartData] = useState(null);
-  const [chartStyle, setChartStyle] = useState('south'); // 'south' | 'north'
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [user, setUser] = useState(null);
+  const [chartStyle, setChartStyle] = useState('south');
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
+  const [user, setUser]         = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
   }, []);
 
-  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+  // Debounced place search
+  useEffect(() => {
+    if(!placeQuery || placeQuery.length < 3) { setPlaceSugg([]); return; }
+    clearTimeout(placeDebounce.current);
+    placeDebounce.current = setTimeout(async () => {
+      setPlaceLoading(true);
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeQuery)}&format=json&limit=5&addressdetails=1`, { headers:{'Accept-Language':'en'} });
+        const data = await res.json();
+        setPlaceSugg(data.map(d => ({
+          display: d.display_name,
+          short: [d.address?.city || d.address?.town || d.address?.village, d.address?.state, d.address?.country].filter(Boolean).join(', '),
+          lat: parseFloat(d.lat),
+          lon: parseFloat(d.lon),
+        })));
+      } catch(e) { setPlaceSugg([]); }
+      setPlaceLoading(false);
+    }, 400);
+  }, [placeQuery]);
+
+  const handleSelectPlace = (p) => {
+    setSelectedPlace(p);
+    setPlaceQuery(p.short || p.display);
+    setPlaceSugg([]);
+  };
 
   const handleGenerate = async () => {
-    if(!form.date || !form.time || !form.place) { setError('Please fill in all three fields.'); return; }
+    // Validate all fields
+    const d = parseInt(day), mo = parseInt(month), yr = parseInt(year);
+    if(!d || !mo || !yr || !time || !selectedPlace) {
+      setError('Please fill in all fields and select a location from the dropdown.');
+      return;
+    }
+    if(d < 1 || d > 31) { setError('Day must be between 1 and 31.'); return; }
+    if(mo < 1 || mo > 12) { setError('Month must be between 1 and 12.'); return; }
+    if(yr < 1900 || yr > 2100) { setError('Please enter a valid year between 1900 and 2100.'); return; }
+
+    // Build YYYY-MM-DD for internal use
+    const dateStr = `${yr}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const displayDate = `${String(d).padStart(2,'0')}/${String(mo).padStart(2,'0')}/${yr}`;
+
     setError('');
     setLoading(true);
     try {
-      const { lat, lon, display } = await geocodePlace(form.place);
-      const data = calculateChart(form.date, form.time, lat, lon);
-      setChartData({ ...data, lat, lon, display, form: { ...form } });
-      window.scrollTo({ top: 600, behavior: 'smooth' });
+      const data = calculateChart(dateStr, time, selectedPlace.lat, selectedPlace.lon);
+      setChartData({ ...data, lat: selectedPlace.lat, lon: selectedPlace.lon, display: selectedPlace.display, form: { date: dateStr, displayDate, time, place: selectedPlace.short || selectedPlace.display } });
+      setTimeout(() => window.scrollTo({ top: 600, behavior: 'smooth' }), 100);
     } catch(e) {
-      setError('Could not find that location. Try being more specific — e.g. "Pune, Maharashtra, India"');
+      setError('Calculation failed. Please check your inputs and try again.');
     } finally {
       setLoading(false);
     }
@@ -674,21 +735,54 @@ export default function BirthChart() {
         {/* Form */}
         <div className="bc-form-card bc-fadein bc-d1">
           <div className="bc-form-grid">
-            <div className="bc-field">
+
+            {/* Date — DD / MM / YYYY */}
+            <div className="bc-field full">
               <label className="bc-label">Date of birth</label>
-              <input className="bc-input" type="date" name="date" value={form.date} onChange={handleChange}/>
+              <div className="bc-date-grid">
+                <input className="bc-input" type="number" placeholder="DD" min="1" max="31"
+                  value={day} onChange={e => setDay(e.target.value)} style={{textAlign:'center'}}/>
+                <input className="bc-input" type="number" placeholder="MM" min="1" max="12"
+                  value={month} onChange={e => setMonth(e.target.value)} style={{textAlign:'center'}}/>
+                <input className="bc-input" type="number" placeholder="YYYY" min="1900" max="2100"
+                  value={year} onChange={e => setYear(e.target.value)} style={{textAlign:'center'}}/>
+              </div>
             </div>
+
+            {/* Time */}
             <div className="bc-field">
               <label className="bc-label">Time of birth</label>
-              <input className="bc-input" type="time" name="time" value={form.time} onChange={handleChange}/>
+              <input className="bc-input" type="time" value={time} onChange={e => setTime(e.target.value)}/>
               <div className="bc-input-note">Enter in IST (India Standard Time)</div>
             </div>
-            <div className="bc-field full">
+
+            {/* Place with autocomplete */}
+            <div className="bc-field">
               <label className="bc-label">Place of birth</label>
-              <input className="bc-input" type="text" name="place" value={form.place} onChange={handleChange}
-                placeholder="e.g. Pune, Maharashtra, India"/>
-              <div className="bc-input-note">Be specific — include city, state, and country</div>
+              <div className="bc-place-wrap">
+                <input className="bc-input" type="text" placeholder="Start typing a city…"
+                  value={placeQuery}
+                  onChange={e => { setPlaceQuery(e.target.value); setSelectedPlace(null); }}
+                  autoComplete="off"
+                  style={selectedPlace ? {borderColor:'rgba(110,203,160,0.4)'} : {}}
+                />
+                {(placeSuggestions.length > 0 || placeLoading) && (
+                  <div className="bc-place-dropdown">
+                    {placeLoading && <div className="bc-place-loading">Searching…</div>}
+                    {placeSuggestions.map((p, i) => (
+                      <div key={i} className="bc-place-option" onClick={() => handleSelectPlace(p)}>
+                        <strong>{p.short}</strong>
+                        <div style={{fontSize:11,opacity:0.5,marginTop:2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.display}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="bc-input-note">
+                {selectedPlace ? `✓ ${selectedPlace.lat.toFixed(4)}°N, ${selectedPlace.lon.toFixed(4)}°E` : 'Type and select from dropdown'}
+              </div>
             </div>
+
           </div>
           {error && <div className="bc-error">{error}</div>}
           <button className="bc-btn bc-btn-primary" onClick={handleGenerate} disabled={loading}>
@@ -707,7 +801,7 @@ export default function BirthChart() {
                   <span>{SIGNS_SK[Math.floor(chartData.planets.lagna / 30)]}</span>
                 </div>
                 <div style={{fontSize:12,color:'var(--pearl-dim)',marginTop:4}}>
-                  {chartData.form.place} · {chartData.form.date} · {chartData.form.time} IST
+                  {chartData.form.place} · {chartData.form.displayDate} · {chartData.form.time} IST
                 </div>
               </div>
               <div className="bc-toggle">
