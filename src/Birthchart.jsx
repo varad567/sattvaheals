@@ -291,7 +291,6 @@ function getLagnaLongitude(jd, lat, lon) {
 function calculateChart(dateStr, timeStr, lat, lon) {
   const [year, month, day] = dateStr.split('-').map(Number);
   const [hLocal, mLocal] = timeStr.split(':').map(Number);
-  // Convert IST (UTC+5:30) to UTC
   const utcHour = hLocal - 5.5;
   const utcH = Math.floor(((utcHour % 24) + 24) % 24);
   const utcM = mLocal;
@@ -308,6 +307,32 @@ function calculateChart(dateStr, timeStr, lat, lon) {
   });
   planets.lagna = toSidereal(lagnaT, ayan);
 
+  // ── Retrograde detection ──────────────────────────────
+  // Compare geocentric longitude at jd vs jd+1
+  // A planet is retrograde when its longitude decreases
+  const tropical2 = getPlanetPositions(jd + 1);
+  const ayan2 = getLahiriAyanamsha(jd + 1);
+
+  function velDiff(lon1, lon2) {
+    let d = toSidereal(lon2, ayan2) - toSidereal(lon1, ayan);
+    if(d > 180) d -= 360;
+    if(d < -180) d += 360;
+    return d; // negative = retrograde
+  }
+
+  const retrograde = {
+    sun:     false, // Sun never retrograde
+    moon:    false, // Moon never retrograde
+    mercury: velDiff(tropical.mercury, tropical2.mercury) < 0,
+    venus:   velDiff(tropical.venus,   tropical2.venus)   < 0,
+    mars:    velDiff(tropical.mars,    tropical2.mars)    < 0,
+    jupiter: velDiff(tropical.jupiter, tropical2.jupiter) < 0,
+    saturn:  velDiff(tropical.saturn,  tropical2.saturn)  < 0,
+    rahu:    true,  // Rahu always retrograde (mean node moves backward)
+    ketu:    true,  // Ketu always retrograde
+    lagna:   false,
+  };
+
   // Nakshatra & Dasha
   const moonNakIdx = Math.floor(planets.moon / (360/27));
   const moonNak = NAKSHATRAS[moonNakIdx];
@@ -319,11 +344,9 @@ function calculateChart(dateStr, timeStr, lat, lon) {
   const nakProgress = (planets.moon % (360/27)) / (360/27);
   const remainYears = DASHA_YEARS[dashLordIdx] * (1 - nakProgress);
 
-  // Birth date as JS Date for dasha timeline
   const birthDate = new Date(`${dateStr}T${timeStr}`);
   const dashaStart = new Date(birthDate.getTime() - (DASHA_YEARS[dashLordIdx] - remainYears) * 365.25 * 24*60*60*1000);
 
-  // Build full dasha sequence from birth dasha
   const dashaSeq = [];
   let cursor = dashaStart;
   let startIdx = DASHA_ORDER.indexOf(dashLord);
@@ -336,7 +359,7 @@ function calculateChart(dateStr, timeStr, lat, lon) {
     cursor = end;
   }
 
-  return { planets, ayan, moonNak, moonNakSk, moonNakLord, moonNakIdx, dashLord, remainYears, dashaSeq, jd };
+  return { planets, retrograde, ayan, moonNak, moonNakSk, moonNakLord, moonNakIdx, dashLord, remainYears, dashaSeq, jd };
 }
 
 /* ─────────────────────────────────────────
@@ -364,8 +387,7 @@ const SI_POSITIONS = [
   [2,0],[1,0]
 ]; // Signs 0 (Aries) through 11 (Pisces)
 
-function SouthIndianChart({ planets }) {
-  // For each of 12 cells, figure out which sign it is and what planets are there
+function SouthIndianChart({ planets, retrograde }) {
   const lagnaSign = Math.floor(planets.lagna / 30);
 
   const cells = SI_POSITIONS.map((pos, signIdx) => {
@@ -393,9 +415,10 @@ function SouthIndianChart({ planets }) {
             <div className="si-sign">{SIGN_ABBR[cell.signIdx]}</div>
             <div className="si-planets">
               {cell.planets.map(p => (
-                <div key={p} className={`si-planet ${p==='rahu'||p==='ketu'?'retro':''}`}>
+                <div key={p} className={`si-planet ${retrograde[p] ? 'retro' : ''}`}>
                   {PLANET_ABBR[p]}
-                  {p==='lagna' ? '' : ` ${(planets[p] % 30).toFixed(0)}°`}
+                  {p === 'lagna' ? '' : ` ${(planets[p] % 30).toFixed(0)}°`}
+                  {retrograde[p] ? ' ℞' : ''}
                 </div>
               ))}
             </div>
@@ -408,89 +431,132 @@ function SouthIndianChart({ planets }) {
 }
 
 /* ─────────────────────────────────────────
-   NORTH INDIAN CHART (SVG diamond style)
+   NORTH INDIAN CHART
+   Standard Uttar Bharatiya 4×4 grid layout
+   H1 always top-second-cell, clockwise
 ───────────────────────────────────────── */
-function NorthIndianChart({ planets }) {
+function NorthIndianChart({ planets, retrograde }) {
   const SIZE = 400;
-  const C = SIZE / 2;
+  const CELL = SIZE / 4; // 100px per cell
   const lagnaSign = Math.floor(planets.lagna / 30);
 
-  // 12 house triangles, house 1 = top center, going clockwise
-  // Each house triangle vertices
-  const houseVertices = [
-    [[C,0],[0,0],[C,C]],           // H1 top-left triangle
-    [[C,0],[C,C],[SIZE,0]],        // H2 top-right triangle
-    [[SIZE,0],[C,C],[SIZE,C]],     // H3 right-top triangle
-    [[SIZE,C],[C,C],[SIZE,SIZE]],  // H4 right-bottom triangle
-    [[SIZE,SIZE],[C,C],[C,SIZE]],  // H5 bottom-right triangle
-    [[C,SIZE],[C,C],[0,SIZE]],     // H6 bottom-left triangle
-    [[0,SIZE],[C,C],[0,C]],        // H7 left-bottom triangle
-    [[0,C],[C,C],[0,0]],           // H8 left-top triangle
-    // Inner diamond = center
-    // Actually North Indian has specific layout — use this simplified version
+  // House positions in grid [row, col] — H1 at (0,1), clockwise
+  const HOUSE_CELLS = [
+    [0,1], // H1  — top row, 2nd cell
+    [0,2], // H2  — top row, 3rd cell
+    [0,3], // H3  — top row, 4th cell
+    [1,3], // H4  — right col, 2nd cell
+    [2,3], // H5  — right col, 3rd cell
+    [3,3], // H6  — bottom row, 4th cell
+    [3,2], // H7  — bottom row, 3rd cell
+    [3,1], // H8  — bottom row, 2nd cell
+    [3,0], // H9  — bottom row, 1st cell
+    [2,0], // H10 — left col, 3rd cell
+    [1,0], // H11 — left col, 2nd cell
+    [0,0], // H12 — top row, 1st cell
   ];
 
-  // Simpler North Indian: 12 triangular regions around center diamond
-  const r = C * 0.95;
-  // House label centers (approximate)
-  const labelPositions = [
-    {x:C, y:C*0.3},      // H1 top
-    {x:C*1.6, y:C*0.3},  // H2
-    {x:C*1.7, y:C},      // H3 right
-    {x:C*1.6, y:C*1.7},  // H4
-    {x:C, y:C*1.7},      // H5 bottom
-    {x:C*0.4, y:C*1.7},  // H6
-    {x:C*0.3, y:C},      // H7 left
-    {x:C*0.4, y:C*0.3},  // H8
-    {x:C*0.85, y:C*0.6}, // H9 inner
-    {x:C*1.15, y:C*0.6}, // H10 inner
-    {x:C*1.15, y:C*1.4}, // H11 inner
-    {x:C*0.85, y:C*1.4}, // H12 inner
-  ];
+  // Which sign is in each house (H1 = lagna sign, clockwise)
+  // houseIndex: 0 = H1, 1 = H2, ...
+  const houseSign = (houseIndex) => (lagnaSign + houseIndex) % 12;
 
-  // For each house, which sign occupies it?
-  const houseSign = (houseNum) => ((lagnaSign + houseNum) % 12);
-
-  // For each sign, what planets are there?
+  // Planets in each sign
   const planetsInSign = (signIdx) =>
-    Object.entries(planets).filter(([k,v]) => Math.floor(v/30) === signIdx).map(([k]) => k);
+    Object.entries(planets)
+      .filter(([k, v]) => Math.floor(v / 30) === signIdx)
+      .map(([k]) => k);
+
+  // Build cell data for all 16 grid positions
+  const cellData = {};
+  HOUSE_CELLS.forEach((pos, houseIdx) => {
+    const key = `${pos[0]}-${pos[1]}`;
+    const sign = houseSign(houseIdx);
+    cellData[key] = {
+      houseNum: houseIdx + 1,
+      sign,
+      pls: planetsInSign(sign),
+      isLagna: houseIdx === 0,
+    };
+  });
+
+  // Center 2×2 cells are decorative
+  const CENTER = new Set(['1-1','1-2','2-1','2-2']);
+
+  const cells = [];
+  for(let r = 0; r < 4; r++) {
+    for(let c = 0; c < 4; c++) {
+      cells.push({ r, c, key: `${r}-${c}` });
+    }
+  }
 
   return (
-    <svg className="ni-svg" viewBox={`0 0 ${SIZE} ${SIZE}`}>
-      {/* Outer square */}
-      <rect x="0" y="0" width={SIZE} height={SIZE} fill="none" stroke="rgba(168,204,224,0.2)" strokeWidth="1"/>
-      {/* Diagonals */}
-      <line x1="0" y1="0" x2={SIZE} y2={SIZE} stroke="rgba(168,204,224,0.15)" strokeWidth="0.8"/>
-      <line x1={SIZE} y1="0" x2="0" y2={SIZE} stroke="rgba(168,204,224,0.15)" strokeWidth="0.8"/>
-      {/* Midpoints cross */}
-      <line x1={C} y1="0" x2={C} y2={SIZE} stroke="rgba(168,204,224,0.1)" strokeWidth="0.5"/>
-      <line x1="0" y1={C} x2={SIZE} y2={C} stroke="rgba(168,204,224,0.1)" strokeWidth="0.5"/>
-      {/* Inner diamond */}
-      <polygon points={`${C},${C*0.5} ${C*1.5},${C} ${C},${C*1.5} ${C*0.5},${C}`} fill="rgba(13,31,53,0.4)" stroke="rgba(168,204,224,0.2)" strokeWidth="0.8"/>
+    <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{display:'block'}}>
 
-      {/* House sign labels and planets */}
-      {[...Array(12)].map((_, i) => {
-        const sign = houseSign(i);
-        const pls = planetsInSign(sign);
-        const lp = labelPositions[i];
+      {/* Grid lines */}
+      {[0,1,2,3,4].map(i => (
+        <g key={i}>
+          <line x1={i*CELL} y1={0} x2={i*CELL} y2={SIZE} stroke="rgba(168,204,224,0.18)" strokeWidth="0.8"/>
+          <line x1={0} y1={i*CELL} x2={SIZE} y2={i*CELL} stroke="rgba(168,204,224,0.18)" strokeWidth="0.8"/>
+        </g>
+      ))}
+
+      {/* Center diamond decoration */}
+      <rect x={CELL} y={CELL} width={CELL*2} height={CELL*2} fill="rgba(6,14,26,0.5)" stroke="rgba(168,204,224,0.08)" strokeWidth="0.5"/>
+      <line x1={CELL} y1={CELL} x2={CELL*3} y2={CELL*3} stroke="rgba(168,204,224,0.08)" strokeWidth="0.5"/>
+      <line x1={CELL*3} y1={CELL} x2={CELL} y2={CELL*3} stroke="rgba(168,204,224,0.08)" strokeWidth="0.5"/>
+      <text x={CELL*2} y={CELL*2+8} textAnchor="middle" fill="rgba(226,194,125,0.12)" fontSize="28" fontFamily="Noto Serif Devanagari,serif">ॐ</text>
+
+      {/* Lagna diagonal mark in H1 cell */}
+      {(() => {
+        const [r,c] = HOUSE_CELLS[0];
+        return <line x1={c*CELL} y1={(r+1)*CELL} x2={(c+1)*CELL} y2={r*CELL} stroke="rgba(226,194,125,0.35)" strokeWidth="0.8"/>;
+      })()}
+
+      {/* House cells */}
+      {cells.map(({ r, c, key }) => {
+        if(CENTER.has(key)) return null;
+        const data = cellData[key];
+        if(!data) return null;
+        const x = c * CELL;
+        const y = r * CELL;
+        const cx = x + CELL / 2;
+        const cy = y + CELL / 2;
+
         return (
-          <g key={i}>
-            <text x={lp.x} y={lp.y - 8} textAnchor="middle" fill="rgba(168,204,224,0.4)" fontSize="9" fontFamily="Outfit,sans-serif" letterSpacing="1">
-              {SIGN_ABBR[sign]}
+          <g key={key}>
+            {/* Sign label */}
+            <text x={cx} y={cy - 18} textAnchor="middle"
+              fill={data.isLagna ? 'rgba(226,194,125,0.6)' : 'rgba(168,204,224,0.3)'}
+              fontSize="8" fontFamily="Outfit,sans-serif" letterSpacing="1">
+              {SIGN_ABBR[data.sign]}
             </text>
-            {pls.slice(0,3).map((p, pi) => (
-              <text key={p} x={lp.x} y={lp.y + 6 + pi*13} textAnchor="middle"
-                fill={p==='lagna'?'#E2C27D': p==='rahu'||p==='ketu'?'#B89A55':'#D8EEF8'}
-                fontSize="11" fontFamily="Outfit,sans-serif" fontWeight="400">
-                {PLANET_ABBR[p]}
-              </text>
-            ))}
+
+            {/* Planet labels */}
+            {data.pls.slice(0, 4).map((p, pi) => {
+              const isR = retrograde[p];
+              const lineH = 11;
+              const startY = cy - 4 + (pi - data.pls.length/2 + 0.5) * lineH;
+              return (
+                <text key={p} x={cx} y={startY}
+                  textAnchor="middle"
+                  fill={
+                    p === 'lagna' ? '#E2C27D' :
+                    isR ? '#B89A55' :
+                    '#D8EEF8'
+                  }
+                  fontSize="10" fontFamily="Outfit,sans-serif" fontWeight="400">
+                  {PLANET_ABBR[p]}{isR ? '℞' : ''}
+                </text>
+              );
+            })}
+
+            {/* House number (small, corner) */}
+            <text x={x+4} y={y+10} fill="rgba(168,204,224,0.2)" fontSize="7" fontFamily="Outfit,sans-serif">
+              {data.houseNum}
+            </text>
           </g>
         );
       })}
-
-      {/* Center: Lagna sign */}
-      <text x={C} y={C+6} textAnchor="middle" fill="rgba(226,194,125,0.2)" fontSize="22" fontFamily="Noto Serif Devanagari,serif">ॐ</text>
     </svg>
   );
 }
@@ -498,7 +564,7 @@ function NorthIndianChart({ planets }) {
 /* ─────────────────────────────────────────
    PLANET TABLE
 ───────────────────────────────────────── */
-function PlanetTable({ planets }) {
+function PlanetTable({ planets, retrograde }) {
   const rows = ['lagna','sun','moon','mercury','venus','mars','jupiter','saturn','rahu','ketu'];
   return (
     <table className="bc-planet-table">
@@ -520,13 +586,13 @@ function PlanetTable({ planets }) {
           const nakIdx = Math.floor(deg / (360/27));
           const nak = NAKSHATRAS[nakIdx];
           const nakLord = NAKSHATRA_LORDS[nakIdx];
-          const isRetro = p === 'rahu' || p === 'ketu';
+          const isR = retrograde[p];
           return (
             <tr key={p} className={p==='lagna'?'lagna-row':''}>
               <td>{PLANET_NAMES[p]}</td>
               <td style={{fontFamily:'Noto Serif Devanagari,serif',fontSize:12,color:'var(--moon-dim)'}}>{PLANET_SK[p]}</td>
               <td className="sign">{SIGNS[signIdx]}</td>
-              <td className={isRetro?'retro':''}>{degInSign}°{isRetro?' ℞':''}</td>
+              <td className={isR?'retro':''}>{degInSign}°{isR?' ℞':''}</td>
               <td className="nak">{p==='lagna'?'—':nak}</td>
               <td style={{fontSize:12,color:'var(--pearl-dim)',opacity:0.7}}>{p==='lagna'?'—':nakLord}</td>
             </tr>
@@ -813,8 +879,8 @@ export default function BirthChart() {
             <div className="bc-chart-grid">
               {/* Chart */}
               {chartStyle === 'south'
-                ? <SouthIndianChart planets={chartData.planets}/>
-                : <NorthIndianChart planets={chartData.planets}/>
+                ? <SouthIndianChart planets={chartData.planets} retrograde={chartData.retrograde}/>
+                : <NorthIndianChart planets={chartData.planets} retrograde={chartData.retrograde}/>
               }
 
               {/* Right panel */}
@@ -841,7 +907,7 @@ export default function BirthChart() {
             {/* Full planet table */}
             <div style={{marginTop:40}}>
               <div className="bc-section-label" style={{marginBottom:12}}>All planets</div>
-              <PlanetTable planets={chartData.planets}/>
+              <PlanetTable planets={chartData.planets} retrograde={chartData.retrograde}/>
             </div>
 
             {/* Save */}
