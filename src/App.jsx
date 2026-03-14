@@ -13,6 +13,8 @@ import Admin from './Admin'
 import NotFound from './NotFound'
 import ResetPassword from './ResetPassword'
 import Dashboard from './Dashboard'
+import Issues from './Issues'
+import IssueDetail from './IssueDetail'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -47,6 +49,9 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/issues" element={<Issues />} />
+        
+        
       </Routes>
     </BrowserRouter>
   )

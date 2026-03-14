@@ -804,7 +804,7 @@ export default function SattvaLanding() {
         {user ? (
           <div className="nav-user">
             <span className="nav-user-name">🌙 {userName}</span>
-            <button className="nav-signout" style={{marginRight:8}} onClick={() => navigate('/dashboard')}>My Space</button>
+            <button className="nav-signout" onClick={() => navigate('/dashboard')}>My Practice</button>
             <button className="nav-signout" onClick={handleSignOut}>Sign out</button>
           </div>
         ) : (
