@@ -793,7 +793,7 @@ export default function SattvaLanding() {
         <ul className="nav-links">
           {[
             ['The System', '/about'],
-            ['What We Treat', '/issues'],
+            ['Explore Concerns', '/issues'],
             ['Your Journey', '/how-it-works'],
             ['Our Jyotishis', '/team'],
           ].map(([l, path]) => (
