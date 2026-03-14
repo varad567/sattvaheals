@@ -176,40 +176,90 @@ function toSidereal(tropical, ayanamsha) {
   return ((tropical - ayanamsha) % 360 + 360) % 360;
 }
 
+// Convert heliocentric longitude + radius to geocentric longitude
+function helioToGeo(planetHelLon, planetR, sunLon, earthR) {
+  const ph = planetHelLon * Math.PI / 180;
+  const eh = (sunLon + 180) * Math.PI / 180;
+  const x = planetR * Math.cos(ph) - earthR * Math.cos(eh);
+  const y = planetR * Math.sin(ph) - earthR * Math.sin(eh);
+  return ((Math.atan2(y, x) * 180 / Math.PI) % 360 + 360) % 360;
+}
+
 function getPlanetPositions(jd) {
   const T = (jd - 2451545.0) / 36525.0;
   const r = Math.PI / 180;
 
-  const sunL = 280.46646 + 36000.76983 * T;
-  const sunM = (357.52911 + 35999.05029 * T) * r;
-  const sun = ((sunL + (1.914602 - 0.004817*T)*Math.sin(sunM) + 0.019993*Math.sin(2*sunM)) % 360 + 360) % 360;
+  // SUN — geocentric longitude + Earth radius vector
+  const sunM = (357.52911 + 35999.05029*T - 0.0001537*T*T) * r;
+  const sunL0 = 280.46646 + 36000.76983*T + 0.0003032*T*T;
+  const sunC = (1.9146-0.004817*T-0.000014*T*T)*Math.sin(sunM)
+             + (0.019993-0.000101*T)*Math.sin(2*sunM)
+             + 0.00029*Math.sin(3*sunM);
+  const sun = ((sunL0 + sunC) % 360 + 360) % 360;
+  const eE = 0.016708634 - 0.000042037*T;
+  const earthR = 1.000001018*(1-eE*eE)/(1+eE*Math.cos((sunM+sunC*r)));
 
-  const moonL = 218.3165 + 481267.8813 * T;
-  const moonM = (134.9634 + 477198.8676 * T) * r;
-  const moonD = (297.8502 + 445267.1115 * T) * r;
-  const moon = ((moonL + 6.2886*Math.sin(moonM) + 1.274*Math.sin(2*moonD-moonM) + 0.6583*Math.sin(2*moonD) + 0.2136*Math.sin(2*moonM)) % 360 + 360) % 360;
+  // MOON — geocentric (already geocentric by nature)
+  const moonL = 218.3165 + 481267.8813*T;
+  const moonM = (134.9634 + 477198.8676*T)*r;
+  const moonD = (297.8502 + 445267.1115*T)*r;
+  const moonF = (93.2720 + 483202.0175*T)*r;
+  const moon = ((moonL
+    + 6.2886*Math.sin(moonM)
+    + 1.274*Math.sin(2*moonD-moonM)
+    + 0.6583*Math.sin(2*moonD)
+    + 0.2136*Math.sin(2*moonM)
+    - 0.1851*Math.sin((357.5291+35999.0503*T)*r)
+    - 0.1143*Math.sin(2*moonF)
+    + 0.0588*Math.sin(2*moonD-2*moonM)
+    + 0.0572*Math.sin(2*moonD-moonM-(357.5291+35999.0503*T)*r)
+    + 0.0533*Math.sin(2*moonD+moonM)
+  ) % 360 + 360) % 360;
 
-  const mercL = 252.2509 + 149472.6674 * T;
-  const mercM = (174.7948 + 149472.5153 * T) * r;
-  const mercury = ((mercL + 23.44*Math.sin(mercM) + 2.98*Math.sin(2*mercM) + 0.44*Math.sin(3*mercM)) % 360 + 360) % 360;
+  // MERCURY — heliocentric then geocentric
+  const mercM = (174.7948 + 149472.5153*T)*r;
+  const eM = 0.20563069 - 0.00002182*T;
+  const mercV = mercM + (2*eM-0.25*eM*eM*eM)*Math.sin(mercM) + 1.25*eM*eM*Math.sin(2*mercM) + 13/12*eM*eM*eM*Math.sin(3*mercM);
+  const mercR = 0.387098*(1-eM*eM)/(1+eM*Math.cos(mercV));
+  const mercHelLon = ((252.250906 + 149472.6746358*T + (mercV-mercM)*180/Math.PI) % 360 + 360) % 360;
+  const mercury = helioToGeo(mercHelLon, mercR, sun, earthR);
 
-  const venL = 181.9798 + 58517.8156 * T;
-  const venM = (50.4161 + 58517.8039 * T) * r;
-  const venus = ((venL + 0.7758*Math.sin(venM) + 0.0033*Math.sin(2*venM)) % 360 + 360) % 360;
+  // VENUS — heliocentric then geocentric
+  const venM = (50.4161 + 58517.8039*T)*r;
+  const eV = 0.00677323 - 0.00004938*T;
+  const venV = venM + 2*eV*Math.sin(venM) + 1.25*eV*eV*Math.sin(2*venM);
+  const venR = 0.723332*(1-eV*eV)/(1+eV*Math.cos(venV));
+  const venHelLon = ((181.979801 + 58517.8156760*T + (venV-venM)*180/Math.PI) % 360 + 360) % 360;
+  const venus = helioToGeo(venHelLon, venR, sun, earthR);
 
-  const marL = 355.433 + 19140.2993 * T;
-  const marM = (19.373 + 19140.3023 * T) * r;
-  const mars = ((marL + 10.691*Math.sin(marM) + 0.6228*Math.sin(2*marM) + 0.0503*Math.sin(3*marM)) % 360 + 360) % 360;
+  // MARS — heliocentric then geocentric
+  const marM = (19.3730 + 19140.3023*T)*r;
+  const eMa = 0.09341233 - 0.00011675*T;
+  const marV = marM + (2*eMa-0.25*eMa*eMa*eMa)*Math.sin(marM) + 1.25*eMa*eMa*Math.sin(2*marM) + 13/12*eMa*eMa*eMa*Math.sin(3*marM);
+  const marR = 1.523679*(1-eMa*eMa)/(1+eMa*Math.cos(marV));
+  const marHelLon = ((355.433+19140.2993*T+(marV-marM)*180/Math.PI) % 360 + 360) % 360;
+  const mars = helioToGeo(marHelLon, marR, sun, earthR);
 
-  const jupL = 34.3515 + 3034.9057 * T;
-  const jupM = (20.9441 + 3034.9057 * T) * r;
-  const jupiter = ((jupL + 5.5549*Math.sin(jupM) + 0.1683*Math.sin(2*jupM)) % 360 + 360) % 360;
+  // JUPITER — heliocentric then geocentric
+  const jupM = (20.9441 + 3034.9057*T)*r;
+  const eJ = 0.04849485 + 0.00016323*T;
+  const jupV = jupM + (2*eJ-0.25*eJ*eJ*eJ)*Math.sin(jupM) + 1.25*eJ*eJ*Math.sin(2*jupM);
+  const jupR = 5.202561*(1-eJ*eJ)/(1+eJ*Math.cos(jupV));
+  const jupHelLon = ((34.3515+3034.9057*T+(jupV-jupM)*180/Math.PI) % 360 + 360) % 360;
+  const jupiter = helioToGeo(jupHelLon, jupR, sun, earthR);
 
-  const satL = 50.0774 + 1222.1138 * T;
-  const satM = (317.0207 + 1222.1138 * T) * r;
-  const saturn = ((satL + 6.3585*Math.sin(satM) + 0.2204*Math.sin(2*satM)) % 360 + 360) % 360;
+  // SATURN — heliocentric then geocentric (with Jupiter perturbation)
+  const satM = (317.0207 + 1222.1138*T)*r;
+  const Gj = jupM; const Gs = satM;
+  const satPert = 0.812*Math.sin(2*Gj-5*Gs-67.6*r) - 0.229*Math.cos(2*Gj-4*Gs-2*r) + 0.119*Math.sin(Gj-2*Gs-3*r);
+  const eS = 0.05415060 - 0.00013861*T;
+  const satV = satM + (2*eS-0.25*eS*eS*eS)*Math.sin(satM) + 1.25*eS*eS*Math.sin(2*satM);
+  const satR = 9.537070*(1-eS*eS)/(1+eS*Math.cos(satV));
+  const satHelLon = ((50.0774+1222.1138*T+(satV-satM)*180/Math.PI+satPert) % 360 + 360) % 360;
+  const saturn = helioToGeo(satHelLon, satR, sun, earthR);
 
-  const rahu = ((125.0445 - 1934.1363 * T) % 360 + 360) % 360;
+  // RAHU — mean north node (retrograde)
+  const rahu = ((125.0445 - 1934.1363*T) % 360 + 360) % 360;
   const ketu = (rahu + 180) % 360;
 
   return { sun, moon, mercury, venus, mars, jupiter, saturn, rahu, ketu };
