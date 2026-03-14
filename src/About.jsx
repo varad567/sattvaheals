@@ -599,7 +599,7 @@ export default function About() {
             SATTVA provides traditional wellness content rooted in Ayurveda, Yoga, Jyotish, and Mantra.
             It is not a medical service, mental health establishment, or substitute for professional care.
             If you are experiencing a mental health crisis, call iCall: 9152987821.
-            {' '}· © 2026 SATTVA HEALS · sattvaheals.in
+            {' '}· <a href="/privacy" style={{color:'rgba(139,175,196,0.4)'}}>Privacy</a> · <a href="/terms" style={{color:'rgba(139,175,196,0.4)'}}>Terms</a> · © 2026 SATTVA HEALS · sattvaheals.in
           </div>
         </div>
       </footer>

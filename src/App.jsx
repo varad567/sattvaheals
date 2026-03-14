@@ -15,6 +15,7 @@ import ResetPassword from './ResetPassword'
 import Dashboard from './Dashboard'
 import Issues from './Issues'
 import IssueDetail from './IssueDetail'
+import Terms from './Terms'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/issues/:slug" element={<IssueDetail />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/terms" element={<Terms />} />
       </Routes>
     </BrowserRouter>
   )
