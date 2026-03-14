@@ -793,6 +793,7 @@ export default function SattvaLanding() {
         <ul className="nav-links">
           {[
             ['The System', '/about'],
+            ['What We Treat', '/issues'],
             ['Your Journey', '/how-it-works'],
             ['Our Jyotishis', '/team'],
           ].map(([l, path]) => (
@@ -851,7 +852,7 @@ export default function SattvaLanding() {
             ) : (
               <>
                 <button className="btn-primary" onClick={() => navigate('/signup')}>Begin — it's free</button>
-                <button className="btn-ghost" onClick={() => navigate('/how-it-works')}>How it works</button>
+                <button className="btn-ghost" onClick={() => navigate('/issues')}>Explore concerns</button>
               </>
             )}
           </div>
@@ -1132,7 +1133,7 @@ export default function SattvaLanding() {
             ) : (
               <>
                 <button className="btn-primary" onClick={() => navigate('/signup')}>Begin — it's free</button>
-                <button className="btn-ghost" onClick={() => navigate('/consult')}>Book a consultation</button>
+                <button className="btn-ghost" onClick={() => navigate('/issues')}>Explore concerns</button>
               </>
             )}
           </div>

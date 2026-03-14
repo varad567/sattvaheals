@@ -50,8 +50,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/issues" element={<Issues />} />
-        
-        
+        <Route path="/issues/:id" element={<IssueDetail />} />
       </Routes>
     </BrowserRouter>
   )
