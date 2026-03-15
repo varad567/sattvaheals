@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
 
@@ -690,8 +689,58 @@ export default function BirthChart() {
   const [saved, setSaved]       = useState(false);
   const [user, setUser]         = useState(null);
 
+  const [initialLoading, setInitialLoading] = useState(true);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if(!session) { setInitialLoading(false); return; }
+      setUser(session.user);
+
+      // Fetch saved chart if exists
+      try {
+        const { data } = await supabase
+          .from('birth_charts')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if(data) {
+          // Pre-fill form fields
+          const [yr, mo, d] = data.birth_date.split('-');
+          setDay(String(parseInt(d)));
+          setMonth(String(parseInt(mo)));
+          setYear(yr);
+          setTime(data.birth_time?.slice(0,5) || '');
+          setPlaceQuery(data.birth_place || '');
+          setSelectedPlace({
+            display: data.birth_place,
+            short: data.birth_place,
+            lat: data.latitude,
+            lon: data.longitude,
+          });
+
+          // Auto-generate chart
+          const dateStr = data.birth_date;
+          const timeStr = data.birth_time?.slice(0,5) || '00:00';
+          const displayDate = `${d}/${mo}/${yr}`;
+          try {
+            const chartResult = calculateChart(dateStr, timeStr, data.latitude, data.longitude);
+            setChartData({
+              ...chartResult,
+              lat: data.latitude,
+              lon: data.longitude,
+              display: data.birth_place,
+              form: { date: dateStr, displayDate, time: timeStr, place: data.birth_place }
+            });
+            setSaved(true); // already saved
+          } catch(e) { console.error('Chart calc error', e); }
+        }
+      } catch(e) {} // no saved chart yet — that's fine
+
+      setInitialLoading(false);
+    };
+    init();
   }, []);
 
   // Debounced place search
@@ -749,7 +798,7 @@ export default function BirthChart() {
   };
 
   const handleSave = async () => {
-    if(!user) { navigate('/login?redirect=/birth-chart'); return; }
+    if(!user) { navigate('/login?redirect=/kundali'); return; }
     if(saving || saved || !chartData) return;
     setSaving(true);
     try {
@@ -778,15 +827,17 @@ export default function BirthChart() {
 
   return (
     <>
-      <Helmet>
-        <title>Free Vedic Kundali Calculator — Jyotish Birth Chart | Sattva Heals</title>
-        <meta name="description" content="Generate your free Vedic birth chart online. Get your Lagna, all 9 planets, Moon Nakshatra, and Vimshottari Dasha sequence — calculated using the Lahiri ayanamsha." />
-        <link rel="canonical" href="https://sattvaheals.in/kundali" />
-      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>
 
+      {initialLoading ? (
+        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
+          <div style={{fontSize:36}}>🪐</div>
+          <div style={{fontSize:12,letterSpacing:'3px',textTransform:'uppercase',color:'var(--pearl-dim)'}}>Loading your chart</div>
+        </div>
+      ) : (
+      <>
       <nav className="bc-nav">
         <div className="bc-nav-brand" onClick={() => navigate('/')}>SATTVA <span>Heals</span></div>
         <button className="bc-nav-back" onClick={() => navigate('/dashboard')}>Dashboard</button>
@@ -921,7 +972,7 @@ export default function BirthChart() {
               <button className="bc-btn bc-btn-primary" onClick={handleSave} disabled={saving||saved}>
                 {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save chart to my account'}
               </button>
-              <button className="bc-btn bc-btn-secondary" onClick={() => setChartData(null)}>
+              <button className="bc-btn bc-btn-secondary" onClick={() => { setChartData(null); setSaved(false); }}>
                 New chart
               </button>
               <div className="bc-save-note">
@@ -938,6 +989,8 @@ export default function BirthChart() {
         )}
 
       </div>
+      </>
+      )}
     </>
   );
 }
