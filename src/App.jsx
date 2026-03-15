@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import SattvaLanding from './SattvaLanding'
 import Onboarding from './Onboarding'
 import SattvaAuth from './SattvaAuth'
@@ -52,6 +52,8 @@ export default function App() {
         <Route path="/issues" element={<Issues />} />
         <Route path="/issues/:slug" element={<IssueDetail />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/kundali" element={<BirthChart />} />
+        <Route path="/birth-chart" element={<Navigate to="/kundali" replace />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/birthchart" element={<BirthChart />} />

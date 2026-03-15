@@ -570,6 +570,7 @@ export default function Dashboard() {
   const [loading, setLoading]         = useState(true);
   const [user, setUser]               = useState(null);
   const [assessment, setAssessment]   = useState(null); // null = not done
+  const [birthChart, setBirthChart]   = useState(null); // null = not generated
   const [checked, setChecked]         = useState({});   // today's checklist state
   const moonData   = getMoonData();
   const rahuKala   = getRahuKala();
@@ -588,6 +589,14 @@ export default function Dashboard() {
         .single();
 
       if(data && !error) setAssessment(data);
+
+      const { data: chartData } = await supabase
+        .from('birth_charts')
+        .select('lagna_sign, moon_nakshatra, birth_dasha, birth_date, birth_place, planet_positions')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if(chartData) setBirthChart(chartData);
       setLoading(false);
     };
     init();
@@ -659,6 +668,7 @@ export default function Dashboard() {
               Take Assessment
             </button>
           )}
+          <button className="db-nav-btn" onClick={() => navigate('/kundali')}>Kundali</button>
           <button className="db-nav-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
       </nav>
@@ -915,6 +925,53 @@ export default function Dashboard() {
                     <button className="db-retake-btn" onClick={() => navigate('/onboarding')}>
                       Retake
                     </button>
+                  </div>
+                </div>
+
+                {/* Kundali card */}
+                <div className="db-fadein db-fadein-5">
+                  <div className="db-section-label">Jyotisha</div>
+                  <div className="db-card" style={{cursor:'pointer'}} onClick={() => navigate('/kundali')}>
+                    <div className="db-card-head">
+                      <div className="db-card-title">Birth Chart</div>
+                      <div className="db-card-icon">🪐</div>
+                    </div>
+                    {birthChart ? (
+                      <>
+                        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:13,paddingBottom:7,borderBottom:'1px solid rgba(168,204,224,0.06)'}}>
+                            <span style={{color:'var(--pearl-dim)'}}>Lagna</span>
+                            <span style={{color:'var(--gold)'}}>{birthChart.lagna_sign}</span>
+                          </div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:13,paddingBottom:7,borderBottom:'1px solid rgba(168,204,224,0.06)'}}>
+                            <span style={{color:'var(--pearl-dim)'}}>Moon Nakshatra</span>
+                            <span style={{color:'var(--moon)'}}>{birthChart.moon_nakshatra}</span>
+                          </div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:13,paddingBottom:7,borderBottom:'1px solid rgba(168,204,224,0.06)'}}>
+                            <span style={{color:'var(--pearl-dim)'}}>Current Dasha</span>
+                            <span style={{color:'var(--pearl)'}}>{birthChart.birth_dasha}</span>
+                          </div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:13}}>
+                            <span style={{color:'var(--pearl-dim)'}}>Birth place</span>
+                            <span style={{color:'var(--pearl-dim)',fontSize:11,maxWidth:140,textAlign:'right',lineHeight:1.4}}>{birthChart.birth_place}</span>
+                          </div>
+                        </div>
+                        <div style={{marginTop:14,fontSize:10,letterSpacing:'2px',textTransform:'uppercase',color:'var(--moon-dim)',opacity:0.7}}>
+                          View full chart →
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{fontSize:13,color:'var(--pearl-dim)',lineHeight:1.8,marginBottom:16}}>
+                          Generate your Jyotish birth chart — Lagna, all 9 grahas, Nakshatras, and Dasha sequence.
+                        </div>
+                        <button
+                          style={{padding:'10px 20px',background:'transparent',border:'1px solid rgba(168,204,224,0.2)',color:'var(--pearl-dim)',fontSize:10,letterSpacing:'2px',textTransform:'uppercase',cursor:'pointer',fontFamily:'Outfit,sans-serif',borderRadius:'1px',transition:'all 0.25s'}}
+                          onClick={e => { e.stopPropagation(); navigate('/kundali'); }}>
+                          Generate Kundali
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 

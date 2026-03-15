@@ -794,6 +794,7 @@ export default function SattvaLanding() {
           {[
             ['The System', '/about'],
             ['Explore Concerns', '/issues'],
+            ['Kundali', '/kundali'],
             ['Your Journey', '/how-it-works'],
             ['Our Jyotishis', '/team'],
           ].map(([l, path]) => (
@@ -847,7 +848,7 @@ export default function SattvaLanding() {
             {user ? (
               <>
                 <button className="btn-primary" onClick={() => navigate('/dashboard')}>Continue your journey</button>
-                <button className="btn-ghost" onClick={() => navigate('/consult')}>Book a consultation</button>
+                <button className="btn-ghost" onClick={() => navigate('/kundali')}>My Kundali</button>
               </>
             ) : (
               <>
@@ -1128,7 +1129,7 @@ export default function SattvaLanding() {
             {user ? (
               <>
                 <button className="btn-primary" onClick={() => navigate('/dashboard')}>Continue your journey</button>
-                <button className="btn-ghost" onClick={() => navigate('/consult')}>Book a consultation</button>
+                <button className="btn-ghost" onClick={() => navigate('/kundali')}>My Kundali</button>
               </>
             ) : (
               <>
