@@ -559,6 +559,192 @@ function UsersTab({ data, loading }){
   );
 }
 
+function BlogTab() {
+  const [posts, setPosts]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [editing, setEditing]   = useState(null); // null = list, 'new' = new post, post obj = edit
+  const [form, setForm]         = useState({ title:'', slug:'', excerpt:'', category:'Ayurveda & Doshas', content:'', read_time:'5 min', author:'Varad Bidwai', published:false });
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState('');
+
+  const CATEGORIES = ['Ayurveda & Doshas','Jyotish & Planets','Mental Wellness & IKS','Mantra & Practice'];
+
+  useEffect(() => { fetchPosts(); }, []);
+
+  const fetchPosts = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending:false });
+    if(data) setPosts(data);
+    setLoading(false);
+  };
+
+  const slugify = (str) => str.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+
+  const openNew = () => {
+    setForm({ title:'', slug:'', excerpt:'', category:'Ayurveda & Doshas', content:'', read_time:'5 min', author:'Varad Bidwai', published:false });
+    setEditing('new');
+    setMsg('');
+  };
+
+  const openEdit = (post) => {
+    setForm({ ...post });
+    setEditing(post);
+    setMsg('');
+  };
+
+  const handleTitleChange = (val) => {
+    setForm(f => ({ ...f, title: val, slug: editing === 'new' ? slugify(val) : f.slug }));
+  };
+
+  const handleSave = async () => {
+    if(!form.title.trim() || !form.slug.trim() || !form.content.trim()) {
+      setMsg('Title, slug, and content are required.'); return;
+    }
+    setSaving(true); setMsg('');
+    try {
+      if(editing === 'new') {
+        const { error } = await supabase.from('blog_posts').insert({
+          ...form,
+          published_at: form.published ? new Date().toISOString() : null,
+          created_at: new Date().toISOString(),
+        });
+        if(error) throw error;
+        setMsg('Post created.');
+      } else {
+        const { error } = await supabase.from('blog_posts').update({
+          ...form,
+          published_at: form.published && !editing.published_at ? new Date().toISOString() : editing.published_at,
+        }).eq('id', editing.id);
+        if(error) throw error;
+        setMsg('Post updated.');
+      }
+      fetchPosts();
+      setTimeout(() => setEditing(null), 800);
+    } catch(e) {
+      setMsg('Error: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if(!window.confirm('Delete this post?')) return;
+    await supabase.from('blog_posts').delete().eq('id', id);
+    fetchPosts();
+  };
+
+  const togglePublish = async (post) => {
+    await supabase.from('blog_posts').update({
+      published: !post.published,
+      published_at: !post.published ? new Date().toISOString() : post.published_at,
+    }).eq('id', post.id);
+    fetchPosts();
+  };
+
+  // ── Editor view ──
+  if(editing !== null) return (
+    <div>
+      <div className="table-header">
+        <div className="table-title">{editing === 'new' ? 'New' : 'Edit'} <em>Post</em></div>
+        <button className="admin-logout" style={{cursor:'pointer'}} onClick={() => setEditing(null)}>← Back</button>
+      </div>
+
+      {[
+        { label:'Title', key:'title', type:'text', onChange: e => handleTitleChange(e.target.value) },
+        { label:'Slug (URL)', key:'slug', type:'text' },
+        { label:'Excerpt', key:'excerpt', type:'text' },
+        { label:'Author', key:'author', type:'text' },
+        { label:'Read time', key:'read_time', type:'text' },
+      ].map(({ label, key, type, onChange }) => (
+        <div key={key} style={{marginBottom:14}}>
+          <div style={{fontSize:10,letterSpacing:'2px',textTransform:'uppercase',color:'var(--moon-dim)',marginBottom:6}}>{label}</div>
+          <input type={type} value={form[key]} style={{width:'100%',padding:'10px 14px',background:'rgba(6,14,26,0.6)',border:'1px solid rgba(168,204,224,0.1)',color:'var(--pearl)',fontFamily:'Outfit,sans-serif',fontSize:14,outline:'none',borderRadius:2}}
+            onChange={onChange || (e => setForm(f => ({...f,[key]:e.target.value})))}/>
+        </div>
+      ))}
+
+      <div style={{marginBottom:14}}>
+        <div style={{fontSize:10,letterSpacing:'2px',textTransform:'uppercase',color:'var(--moon-dim)',marginBottom:6}}>Category</div>
+        <select value={form.category} onChange={e => setForm(f => ({...f,category:e.target.value}))}
+          style={{width:'100%',padding:'10px 14px',background:'rgba(6,14,26,0.8)',border:'1px solid rgba(168,204,224,0.1)',color:'var(--pearl)',fontFamily:'Outfit,sans-serif',fontSize:14,outline:'none',borderRadius:2}}>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      <div style={{marginBottom:14}}>
+        <div style={{fontSize:10,letterSpacing:'2px',textTransform:'uppercase',color:'var(--moon-dim)',marginBottom:6}}>
+          Content (HTML supported — use &lt;h2&gt;, &lt;p&gt;, &lt;blockquote&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;&lt;li&gt;)
+        </div>
+        <textarea value={form.content} onChange={e => setForm(f => ({...f,content:e.target.value}))}
+          style={{width:'100%',minHeight:360,padding:'12px 14px',background:'rgba(6,14,26,0.6)',border:'1px solid rgba(168,204,224,0.1)',color:'var(--pearl)',fontFamily:'monospace',fontSize:13,outline:'none',borderRadius:2,lineHeight:1.6,resize:'vertical'}}/>
+      </div>
+
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+        <input type="checkbox" id="pub" checked={form.published} onChange={e => setForm(f => ({...f,published:e.target.checked}))} style={{width:16,height:16,cursor:'pointer'}}/>
+        <label htmlFor="pub" style={{fontSize:13,color:'var(--pearl-dim)',cursor:'pointer'}}>Publish immediately</label>
+      </div>
+
+      {msg && <div style={{fontSize:12,color:msg.startsWith('Error') ? 'var(--error)' : '#6ECBA0',marginBottom:12}}>{msg}</div>}
+
+      <button onClick={handleSave} disabled={saving}
+        style={{padding:'12px 32px',background:'linear-gradient(135deg,rgba(226,194,125,0.15),rgba(226,194,125,0.05))',border:'1px solid rgba(226,194,125,0.35)',color:'var(--gold)',fontFamily:'Outfit,sans-serif',fontSize:11,letterSpacing:'2px',textTransform:'uppercase',cursor:'pointer',borderRadius:2,opacity:saving?0.5:1}}>
+        {saving ? 'Saving…' : 'Save Post'}
+      </button>
+    </div>
+  );
+
+  // ── List view ──
+  return (
+    <div>
+      <div className="table-header">
+        <div className="table-title">Blog <em>Posts</em></div>
+        <button className="admin-logout" style={{cursor:'pointer',borderColor:'rgba(226,194,125,0.3)',color:'var(--gold)'}} onClick={openNew}>+ New Post</button>
+      </div>
+
+      {loading ? (
+        <div style={{color:'var(--pearl-dim)',fontSize:13,padding:'20px 0'}}>Loading…</div>
+      ) : posts.length === 0 ? (
+        <div style={{color:'var(--pearl-dim)',fontSize:13,padding:'40px 0',textAlign:'center'}}>No posts yet. Create your first one.</div>
+      ) : (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map(post => (
+              <tr key={post.id}>
+                <td style={{color:'var(--pearl)',maxWidth:280}}>{post.title}</td>
+                <td style={{fontSize:11,opacity:0.7}}>{post.category}</td>
+                <td>
+                  <span style={{fontSize:10,letterSpacing:'1.5px',textTransform:'uppercase',padding:'3px 10px',borderRadius:999,border:`1px solid ${post.published?'rgba(110,203,160,0.3)':'rgba(168,204,224,0.12)'}`,color:post.published?'#6ECBA0':'var(--pearl-dim)'}}>
+                    {post.published ? 'Live' : 'Draft'}
+                  </span>
+                </td>
+                <td style={{fontSize:11,opacity:0.6}}>{post.published_at ? new Date(post.published_at).toLocaleDateString('en-IN') : '—'}</td>
+                <td>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={() => openEdit(post)} style={{fontSize:10,letterSpacing:'1px',padding:'4px 10px',background:'transparent',border:'1px solid rgba(168,204,224,0.15)',color:'var(--pearl-dim)',cursor:'pointer',borderRadius:2,fontFamily:'Outfit,sans-serif'}}>Edit</button>
+                    <button onClick={() => togglePublish(post)} style={{fontSize:10,letterSpacing:'1px',padding:'4px 10px',background:'transparent',border:`1px solid ${post.published?'rgba(224,112,112,0.3)':'rgba(110,203,160,0.3)'}`,color:post.published?'var(--error)':'#6ECBA0',cursor:'pointer',borderRadius:2,fontFamily:'Outfit,sans-serif'}}>
+                      {post.published ? 'Unpublish' : 'Publish'}
+                    </button>
+                    <button onClick={() => handleDelete(post.id)} style={{fontSize:10,letterSpacing:'1px',padding:'4px 10px',background:'transparent',border:'1px solid rgba(224,112,112,0.2)',color:'var(--error)',cursor:'pointer',borderRadius:2,fontFamily:'Outfit,sans-serif'}}>Delete</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 export default function Admin(){
   const [authed, setAuthed] = useState(false);
   const [pw, setPw] = useState('');
@@ -566,8 +752,10 @@ export default function Admin(){
   const [tab, setTab] = useState('consultations');
   const [consultations, setConsultations] = useState([]);
   const [users, setUsers] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loadingC, setLoadingC] = useState(true);
   const [loadingU, setLoadingU] = useState(true);
+  const [loadingP, setLoadingP] = useState(true);
 
   // Settings — persisted in localStorage
   const [settings, setSettings] = useState(()=>{
@@ -589,6 +777,7 @@ export default function Admin(){
     if(!authed) return;
     fetchConsultations();
     fetchUsers();
+    fetchPosts();
   },[authed]);
 
   async function fetchConsultations(){
@@ -610,6 +799,13 @@ export default function Admin(){
       .order('created_at', { ascending: false });
     if(!error) setUsers(data || []);
     setLoadingU(false);
+  }
+
+  async function fetchPosts(){
+    setLoadingP(true);
+    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending:false });
+    if(data) setPosts(data);
+    setLoadingP(false);
   }
 
   async function updateStatus(id, status){
@@ -684,6 +880,10 @@ export default function Admin(){
             Users
             <span className="tab-count">{users.length}</span>
           </button>
+          <button className={`admin-tab ${tab==='blog'?'active':''}`} onClick={()=>setTab('blog')}>
+            Blog
+            <span className="tab-count">{posts.length}</span>
+          </button>
           <button className={`admin-tab ${tab==='mail'?'active':''}`} onClick={()=>setTab('mail')}>
             Mail
           </button>
@@ -705,6 +905,7 @@ export default function Admin(){
             {tab==='users' && (
               <UsersTab data={users} loading={loadingU}/>
             )}
+            {tab==='blog' && <BlogTab />}
             {tab==='mail' && (
               <MailTab
                 users={users}

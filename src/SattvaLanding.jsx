@@ -802,6 +802,7 @@ export default function SattvaLanding() {
           {[
             ['The System', '/about'],
             ['Explore Concerns', '/issues'],
+            ['Journal', '/blog'],
             ['Kundali', '/kundali'],
             ['Your Journey', '/how-it-works'],
             ['Our Jyotishis', '/team'],

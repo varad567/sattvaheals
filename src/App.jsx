@@ -17,6 +17,8 @@ import Issues from './Issues'
 import IssueDetail from './IssueDetail'
 import Terms from './Terms'
 import BirthChart from './Birthchart'
+import Blog from './Blog'
+import Blogpost from './Blogpost'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -51,6 +53,8 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/issues" element={<Issues />} />
         <Route path="/issues/:slug" element={<IssueDetail />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<Blogpost />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/kundali" element={<BirthChart />} />
         <Route path="/birth-chart" element={<Navigate to="/kundali" replace />} />
