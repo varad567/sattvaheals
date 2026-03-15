@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Helmet } from 'react-helmet-async';
-import { supabase } from './supabase'
+import { supabase } from './supabase';
+
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');`;
+
+const RAZORPAY_KEY = 'rzp_live_SRXBmAzJVztJ3p';
+const AMOUNT_PAISE = 29900; // ₹299 in paise
 
 const css = `
   :root {
@@ -27,10 +30,9 @@ const css = `
   nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:0 72px; height:64px; display:flex; align-items:center; justify-content:space-between; background:rgba(6,14,26,0.92); backdrop-filter:blur(24px); border-bottom:1px solid rgba(168,204,224,0.06); }
   .nav-brand { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--pearl); letter-spacing:5px; text-transform:uppercase; text-decoration:none; }
   .nav-brand span { color:var(--gold); font-style:italic; }
-  .nav-back { background:transparent; border:1px solid rgba(168,204,224,0.15); color:var(--moon-dim); padding:8px 20px; font-family:'Outfit',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:none; transition:all 0.3s; border-radius:1px; }
+  .nav-back { background:transparent; border:1px solid rgba(168,204,224,0.15); color:var(--moon-dim); padding:8px 20px; font-family:'Outfit',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; border-radius:1px; }
   .nav-back:hover { border-color:var(--moon); color:var(--moon); }
 
-  /* HERO */
   .hero { padding:140px 72px 100px; text-align:center; position:relative; overflow:hidden; }
   .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(168,204,224,0.05) 0%, transparent 55%); pointer-events:none; }
   .eyebrow { display:inline-flex; align-items:center; gap:12px; margin-bottom:20px; }
@@ -41,11 +43,9 @@ const css = `
   .hero-sub { font-size:17px; line-height:1.85; color:var(--pearl-dim); max-width:520px; margin:0 auto; animation:fadeUp 0.9s 0.15s ease both; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ARCH */
   .arch { width:100%; overflow:hidden; line-height:0; }
   .arch svg { display:block; width:100%; }
 
-  /* CONSULT TYPES */
   .types-section { padding:100px 72px; background:var(--deep); position:relative; }
   .types-section::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(168,204,224,0.04) 0%, transparent 55%); pointer-events:none; }
   .types-inner { max-width:1100px; margin:0 auto; }
@@ -54,12 +54,7 @@ const css = `
   .sec-title em { font-style:italic; color:var(--gold); }
 
   .types-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; }
-  .type-card {
-    padding:40px 32px; position:relative; overflow:hidden;
-    background:rgba(6,14,26,0.5);
-    border:1px solid rgba(168,204,224,0.06);
-    transition:all 0.4s; cursor:none;
-  }
+  .type-card { padding:40px 32px; position:relative; overflow:hidden; background:rgba(6,14,26,0.5); border:1px solid rgba(168,204,224,0.06); transition:all 0.4s; }
   .type-card:hover { background:rgba(17,40,64,0.7); border-color:rgba(168,204,224,0.14); }
   .type-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--gold-dim), transparent); opacity:0; transition:opacity 0.4s; }
   .type-card:hover::before { opacity:1; }
@@ -72,7 +67,6 @@ const css = `
   .tc-price-num { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:600; color:var(--gold); line-height:1; }
   .tc-price-label { font-size:12px; color:var(--pearl-dim); }
 
-  /* INFO STRIP */
   .info-strip { background:rgba(13,31,53,0.9); border-top:1px solid rgba(168,204,224,0.07); border-bottom:1px solid rgba(168,204,224,0.07); padding:0 72px; }
   .info-strip-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); }
   .info-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:28px 16px; border-right:1px solid rgba(168,204,224,0.05); text-align:center; }
@@ -82,25 +76,16 @@ const css = `
   .ii-label { font-size:9px; letter-spacing:2.5px; color:var(--moon-dim); text-transform:uppercase; font-weight:500; }
   .ii-value { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--pearl); line-height:1.2; }
 
-  /* MAIN SECTION — form + what to expect */
   .main-section { padding:100px 72px 120px; background:var(--abyss); }
   .main-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1.1fr 1fr; gap:80px; align-items:start; }
 
-  /* FORM */
   .form-wrap { background:rgba(13,31,53,0.4); border:1px solid rgba(168,204,224,0.07); padding:48px; }
   .form-title { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:600; color:var(--pearl); margin-bottom:8px; }
   .form-title em { font-style:italic; color:var(--gold); }
   .form-sub { font-size:14px; color:var(--pearl-dim); margin-bottom:36px; line-height:1.6; }
 
-  /* Consultation selector */
   .consult-selector { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; }
-  .consult-opt {
-    display:flex; align-items:center; gap:14px;
-    padding:14px 18px;
-    border:1px solid rgba(168,204,224,0.07);
-    background:rgba(6,14,26,0.4);
-    cursor:none; transition:all 0.3s;
-  }
+  .consult-opt { display:flex; align-items:center; gap:14px; padding:14px 18px; border:1px solid rgba(168,204,224,0.07); background:rgba(6,14,26,0.4); cursor:pointer; transition:all 0.3s; }
   .consult-opt:hover { border-color:rgba(168,204,224,0.15); background:rgba(17,40,64,0.5); }
   .consult-opt.selected { border-color:var(--gold-dim); background:rgba(226,194,125,0.05); }
   .co-radio { width:14px; height:14px; border-radius:50%; border:1px solid rgba(168,204,224,0.25); flex-shrink:0; transition:all 0.3s; position:relative; }
@@ -109,7 +94,6 @@ const css = `
   .co-name { font-size:13px; color:var(--pearl); font-weight:400; flex:1; }
   .co-price { font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--gold); font-weight:600; }
 
-  /* Fields */
   .field { margin-bottom:18px; }
   .field-label { display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--moon-dim); margin-bottom:8px; font-weight:500; }
   .field-input { width:100%; padding:13px 16px; background:rgba(6,14,26,0.6); border:1px solid rgba(168,204,224,0.1); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:14px; font-weight:300; transition:all 0.3s; outline:none; border-radius:1px; }
@@ -118,55 +102,62 @@ const css = `
   .field-input.error { border-color:var(--error); }
   .field-error { font-size:11px; color:var(--error); margin-top:5px; display:block; }
   textarea.field-input { resize:vertical; min-height:120px; line-height:1.6; }
-
   .fields-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
-  /* Submit */
-  .btn-submit { width:100%; padding:16px; background:linear-gradient(135deg,rgba(168,204,224,0.18),rgba(168,204,224,0.06)); border:1px solid rgba(168,204,224,0.3); color:var(--pearl); font-family:'Outfit',sans-serif; font-size:12px; font-weight:500; letter-spacing:2.5px; text-transform:uppercase; cursor:none; transition:all 0.4s; border-radius:1px; margin-top:8px; position:relative; overflow:hidden; }
-  .btn-submit::before { content:''; position:absolute; inset:0; background:rgba(168,204,224,0.08); transform:scaleX(0); transform-origin:left; transition:transform 0.4s; }
-  .btn-submit:hover::before { transform:scaleX(1); }
-  .btn-submit:hover { border-color:var(--moon); }
-  .btn-submit:disabled { opacity:0.5; }
-  .btn-submit.loading::after { content:''; display:inline-block; width:12px; height:12px; border:1.5px solid rgba(168,204,224,0.3); border-top-color:var(--moon); border-radius:50%; animation:spin 0.8s linear infinite; margin-left:10px; vertical-align:middle; }
+  /* Pay button */
+  .btn-pay {
+    width:100%; padding:18px;
+    background:linear-gradient(135deg, rgba(226,194,125,0.2), rgba(226,194,125,0.07));
+    border:1px solid rgba(226,194,125,0.45);
+    color:var(--gold);
+    font-family:'Outfit',sans-serif; font-size:12px; font-weight:500;
+    letter-spacing:2.5px; text-transform:uppercase;
+    cursor:pointer; transition:all 0.4s; border-radius:1px;
+    margin-top:8px; position:relative; overflow:hidden;
+  }
+  .btn-pay::before { content:''; position:absolute; inset:0; background:rgba(226,194,125,0.08); transform:scaleX(0); transform-origin:left; transition:transform 0.4s; }
+  .btn-pay:hover::before { transform:scaleX(1); }
+  .btn-pay:hover { border-color:var(--gold); box-shadow:0 0 24px rgba(226,194,125,0.1); }
+  .btn-pay:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-pay.loading::after { content:''; display:inline-block; width:12px; height:12px; border:1.5px solid rgba(226,194,125,0.3); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; margin-left:10px; vertical-align:middle; }
   @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-  .form-note { font-size:11px; color:rgba(139,175,196,0.3); text-align:center; margin-top:16px; line-height:1.6; }
+  .form-note { font-size:11px; color:rgba(139,175,196,0.3); text-align:center; margin-top:14px; line-height:1.6; }
 
-  /* Success */
+  /* Payment badge */
+  .pay-badge {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px; margin-bottom:20px;
+    background:rgba(110,203,160,0.06);
+    border:1px solid rgba(110,203,160,0.15);
+    border-radius:4px;
+  }
+  .pay-badge-dot { width:6px; height:6px; border-radius:50%; background:#6ECBA0; flex-shrink:0; }
+  .pay-badge-text { font-size:12px; color:rgba(110,203,160,0.8); line-height:1.5; }
+
   .form-success { text-align:center; padding:40px 20px; animation:fadeUp 0.7s ease both; }
   .fs-icon { font-size:48px; display:block; margin-bottom:20px; }
   .fs-title { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:600; color:var(--pearl); margin-bottom:10px; }
   .fs-title em { font-style:italic; color:var(--gold); }
-  .fs-body { font-size:15px; color:var(--pearl-dim); line-height:1.75; margin-bottom:24px; }
+  .fs-body { font-size:15px; color:var(--pearl-dim); line-height:1.75; margin-bottom:12px; }
+  .fs-payment-id { font-size:11px; color:var(--moon-dim); letter-spacing:1px; font-family:monospace; background:rgba(13,31,53,0.6); padding:8px 16px; border-radius:4px; display:inline-block; margin-bottom:16px; }
   .fs-note { font-size:11px; letter-spacing:1.5px; color:var(--moon-dim); text-transform:uppercase; }
 
-  /* EXPECT */
   .expect-wrap {}
   .expect-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; color:var(--pearl); margin-bottom:32px; line-height:1.2; }
   .expect-title em { font-style:italic; color:var(--moon); }
   .expect-steps { display:flex; flex-direction:column; gap:0; margin-bottom:40px; }
-  .estep {
-    display:flex; gap:20px; padding:20px 0;
-    border-bottom:1px solid rgba(168,204,224,0.05);
-    position:relative;
-  }
+  .estep { display:flex; gap:20px; padding:20px 0; border-bottom:1px solid rgba(168,204,224,0.05); position:relative; }
   .estep:last-child { border-bottom:none; }
   .estep-num { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:600; color:var(--gold); opacity:0.3; line-height:1; min-width:36px; }
   .estep-content {}
   .estep-title { font-size:14px; font-weight:500; color:var(--pearl); margin-bottom:5px; }
   .estep-body { font-size:13px; color:var(--pearl-dim); line-height:1.7; }
 
-  /* Trust note */
-  .trust-note {
-    padding:24px 28px;
-    background:rgba(13,31,53,0.4);
-    border:1px solid rgba(168,204,224,0.06);
-    border-left:2px solid var(--gold-dim);
-  }
+  .trust-note { padding:24px 28px; background:rgba(13,31,53,0.4); border:1px solid rgba(168,204,224,0.06); border-left:2px solid var(--gold-dim); }
   .tn-label { font-size:9px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; margin-bottom:8px; display:block; font-weight:500; }
   .tn-text { font-size:13px; color:var(--pearl-dim); line-height:1.75; font-style:italic; }
 
-  /* Reveal */
   .reveal { opacity:0; transform:translateY(32px); transition:opacity 1s cubic-bezier(0.16,1,0.3,1),transform 1s cubic-bezier(0.16,1,0.3,1); }
   .reveal.visible { opacity:1; transform:translateY(0); }
   .reveal-left { opacity:0; transform:translateX(-32px); transition:opacity 1s cubic-bezier(0.16,1,0.3,1),transform 1s cubic-bezier(0.16,1,0.3,1); }
@@ -184,7 +175,7 @@ const css = `
     nav,footer{padding:0 24px;}
     .hero,.types-section,.main-section{padding:100px 24px 80px;}
     .info-strip{padding:24px;}
-    .info-strip-inner{flex-direction:column;gap:24px;}
+    .info-strip-inner{grid-template-columns:1fr 1fr;}
     .types-grid{grid-template-columns:1fr;}
     .main-inner{grid-template-columns:1fr;gap:48px;}
     .form-wrap{padding:32px 24px;}
@@ -195,10 +186,22 @@ const css = `
 `;
 
 const consultTypes = [
-  { sk:'जन्म', name:'Birth Chart Reading', sub:'Full Kundali Analysis', body:'Complete analysis of your birth chart — Moon, Ascendant, all 12 houses, planetary positions and their impact on your mind, health, relationships and life path.', price:'₹899' },
-  { sk:'चन्द्र', name:'Moon & Mind Reading', sub:'Chandra & Mental Wellness', body:'Deep focus on your Chandra — Moon sign, Nakshatra, afflictions and their specific impact on your mental and emotional experience. Includes remedy protocol.', price:'₹899' },
-  { sk:'उपाय', name:'Remedy Session', sub:'Targeted Healing Protocol', body:'For those who already have their chart read. A focused session on specific planetary afflictions — with a complete, personalised remedy protocol across Mantra, Ayurveda and Yoga.', price:'₹899' },
+  { sk:'जन्म', name:'Birth Chart Reading', sub:'Full Kundali Analysis', body:'Complete analysis of your birth chart — Moon, Ascendant, all 12 houses, planetary positions and their impact on your mind, health, relationships and life path.', price:'₹299' },
+  { sk:'चन्द्र', name:'Moon & Mind Reading', sub:'Chandra & Mental Wellness', body:'Deep focus on your Chandra — Moon sign, Nakshatra, afflictions and their specific impact on your mental and emotional experience. Includes remedy protocol.', price:'₹299' },
+  { sk:'उपाय', name:'Remedy Session', sub:'Targeted Healing Protocol', body:'For those who already have their chart read. A focused session on specific planetary afflictions — with a complete, personalised remedy protocol across Mantra, Ayurveda and Yoga.', price:'₹299' },
 ];
+
+/* ─── Load Razorpay script ─── */
+function loadRazorpay() {
+  return new Promise((resolve) => {
+    if(window.Razorpay) { resolve(true); return; }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 function Cursor(){
   const dot=useRef(null),ring=useRef(null);
@@ -259,46 +262,105 @@ const Arch=({to})=>(
 );
 
 function ConsultForm(){
-  const [selected,setSelected]=useState(0);
-  const [form,setForm]=useState({name:'',email:'',phone:'',message:''});
-  const [errors,setErrors]=useState({});
-  const [loading,setLoading]=useState(false);
-  const [success,setSuccess]=useState(false);
+  const [selected, setSelected]   = useState(0);
+  const [form, setForm]           = useState({ name:'', email:'', phone:'', message:'' });
+  const [errors, setErrors]       = useState({});
+  const [loading, setLoading]     = useState(false);
+  const [success, setSuccess]     = useState(false);
+  const [paymentId, setPaymentId] = useState('');
 
-  const validate=()=>{
-    const e={};
-    if(!form.name.trim()) e.name='Your name is required';
-    if(!form.email.includes('@')) e.email='Enter a valid email';
-    if(!form.message.trim()) e.message='Tell us a little about what you need';
+  const validate = () => {
+    const e = {};
+    if(!form.name.trim())        e.name    = 'Your name is required';
+    if(!form.email.includes('@')) e.email   = 'Enter a valid email';
+    if(!form.message.trim())     e.message = 'Tell us a little about what you need';
     return e;
   };
 
-  const handleSubmit = async () => {
-  const e = validate();
-  if (Object.keys(e).length) { setErrors(e); return; }
-  setLoading(true);
-  
-  const { error } = await supabase
-    .from('consultations')
-    .insert({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      session_type: consultTypes[selected].name,
-      message: form.message,
-      status: 'pending'
-    });
+  const handlePayAndBook = async () => {
+    const e = validate();
+    if(Object.keys(e).length) { setErrors(e); return; }
 
-  setLoading(false);
-  if (error) { console.error(error); alert('Something went wrong. Please try again.'); return; }
-  setSuccess(true);
-};
+    setLoading(true);
+
+    const loaded = await loadRazorpay();
+    if(!loaded) {
+      alert('Could not load payment gateway. Please check your connection and try again.');
+      setLoading(false);
+      return;
+    }
+
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: AMOUNT_PAISE,
+      currency: 'INR',
+      name: 'Sattva Heals',
+      description: consultTypes[selected].name,
+      image: 'https://sattvaheals.in/favicon.svg',
+      prefill: {
+        name:  form.name,
+        email: form.email,
+        contact: form.phone || '',
+      },
+      theme: {
+        color: '#E2C27D',
+        backdrop_color: '#060E1A',
+      },
+      modal: {
+        ondismiss: () => setLoading(false),
+      },
+      handler: async (response) => {
+        // Payment successful — save to Supabase
+        try {
+          const { error: dbErr } = await supabase.from('consultations').insert({
+            name:         form.name,
+            email:        form.email,
+            phone:        form.phone,
+            session_type: consultTypes[selected].name,
+            message:      form.message,
+            status:       'paid',
+            payment_id:   response.razorpay_payment_id,
+            amount:       299,
+            created_at:   new Date().toISOString(),
+          });
+
+          if(dbErr) {
+            console.error('DB save error:', dbErr);
+            // Payment went through but DB failed — still show success
+          }
+
+          setPaymentId(response.razorpay_payment_id);
+          setSuccess(true);
+        } catch(err) {
+          console.error(err);
+          setPaymentId(response.razorpay_payment_id);
+          setSuccess(true); // payment succeeded, show success regardless
+        } finally {
+          setLoading(false);
+        }
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.on('payment.failed', (response) => {
+      console.error('Payment failed:', response.error);
+      alert(`Payment failed: ${response.error.description}. Please try again.`);
+      setLoading(false);
+    });
+    rzp.open();
+  };
 
   if(success) return(
     <div className="form-success">
       <span className="fs-icon">🌙</span>
-      <div className="fs-title">Request <em>received.</em></div>
-      <p className="fs-body">Our team will review your message and respond within 2 working days to confirm your appointment details.</p>
+      <div className="fs-title">Booking <em>confirmed.</em></div>
+      <p className="fs-body">
+        Your payment was received. Varad will reach out within 2 working days
+        to confirm your appointment date and time.
+      </p>
+      {paymentId && (
+        <div className="fs-payment-id">Payment ID: {paymentId}</div>
+      )}
       <div className="fs-note">Check your inbox · {form.email}</div>
     </div>
   );
@@ -307,12 +369,18 @@ function ConsultForm(){
     <>
       <div className="form-title">Book a <em>consultation.</em></div>
       <p className="form-sub">
-        This is a Jyotish (Vedic Astrology) wellness consultation — not a medical or psychological service.
+        This is a Jyotish wellness consultation — not a medical or psychological service.
         For mental health crises, please contact iCall at 9152987821.
-        Select your session type, share your details, and our team will reach out within 2 working days.
       </p>
 
-      {/* Consultation type selector */}
+      <div className="pay-badge">
+        <div className="pay-badge-dot"/>
+        <div className="pay-badge-text">
+          Secure payment via Razorpay · ₹299 per session · Varad will confirm your slot within 2 working days
+        </div>
+      </div>
+
+      {/* Session type */}
       <div style={{marginBottom:24}}>
         <label className="field-label">Session Type</label>
         <div className="consult-selector">
@@ -331,7 +399,7 @@ function ConsultForm(){
           <label className="field-label">Your Name</label>
           <input className={`field-input ${errors.name?'error':''}`} placeholder="Full name"
             value={form.name} onChange={e=>{setForm({...form,name:e.target.value});setErrors({...errors,name:''}); }}/>
-          {errors.name&&<span className="field-error">{errors.name}</span>}
+          {errors.name && <span className="field-error">{errors.name}</span>}
         </div>
         <div className="field">
           <label className="field-label">Phone (optional)</label>
@@ -344,7 +412,7 @@ function ConsultForm(){
         <label className="field-label">Email</label>
         <input type="email" className={`field-input ${errors.email?'error':''}`} placeholder="your@email.com"
           value={form.email} onChange={e=>{setForm({...form,email:e.target.value});setErrors({...errors,email:''}); }}/>
-        {errors.email&&<span className="field-error">{errors.email}</span>}
+        {errors.email && <span className="field-error">{errors.email}</span>}
       </div>
 
       <div className="field">
@@ -352,13 +420,19 @@ function ConsultForm(){
         <textarea className={`field-input ${errors.message?'error':''}`}
           placeholder="Share what's on your mind — what you're experiencing, what you're hoping to understand..."
           value={form.message} onChange={e=>{setForm({...form,message:e.target.value});setErrors({...errors,message:''}); }}/>
-        {errors.message&&<span className="field-error">{errors.message}</span>}
+        {errors.message && <span className="field-error">{errors.message}</span>}
       </div>
 
-      <button className={`btn-submit ${loading?'loading':''}`} onClick={handleSubmit} disabled={loading}>
-        {loading?'Sending your request':'Send request — ₹899'}
+      <button
+        className={`btn-pay ${loading?'loading':''}`}
+        onClick={handlePayAndBook}
+        disabled={loading}>
+        {loading ? 'Opening payment' : `Pay ₹299 & Book — ${consultTypes[selected].name}`}
       </button>
-      <p className="form-note">Payment is collected after Varad confirms your appointment.<br/>No charge until your session is confirmed.</p>
+      <p className="form-note">
+        Powered by Razorpay · Your payment is secure and encrypted<br/>
+        Varad will confirm your appointment within 2 working days
+      </p>
     </>
   );
 }
@@ -367,11 +441,6 @@ export default function Consult(){
   useReveal();
   return(
     <>
-      <Helmet>
-        <title>Book a Jyotish Consultation | Sattva Heals</title>
-        <meta name="description" content="Book a 1-on-1 Jyotish consultation with Varad Bidwai — 2+ years of practice, 10,000+ consultations. Your birth chart, your Dasha, your specific struggles — read and answered." />
-        <link rel="canonical" href="https://sattvaheals.in/consult" />
-      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>
@@ -381,7 +450,6 @@ export default function Consult(){
         <button className="nav-back" onClick={()=>window.location.href='/'}>← Back to Home</button>
       </nav>
 
-      {/* HERO */}
       <section className="hero">
         <div className="eyebrow"><div className="ey-line"/><span className="ey-text">Book a Consultation</span><div className="ey-line"/></div>
         <h1 className="hero-title">One session.<br /><em>Your entire chart.</em></h1>
@@ -390,7 +458,6 @@ export default function Consult(){
 
       <Arch to="#0D1F35"/>
 
-      {/* CONSULTATION TYPES */}
       <section className="types-section">
         <div className="types-inner">
           <div className="reveal">
@@ -415,14 +482,13 @@ export default function Consult(){
         </div>
       </section>
 
-      {/* INFO STRIP */}
       <div className="info-strip">
         <div className="info-strip-inner">
           {[
-            {label:'Price',value:'₹899 per session'},
-            {label:'Response time',value:'Within 2 working days'},
-            {label:'Format',value:'By appointment'},
-            {label:'Payment',value:'Collected after confirmation'},
+            {label:'Price',         value:'₹299 per session'},
+            {label:'Response time', value:'Within 2 working days'},
+            {label:'Format',        value:'By appointment'},
+            {label:'Payment',       value:'Secure · Razorpay'},
           ].map((item,i)=>(
             <div className="info-item" key={i}>
               <div className="ii-dot"/>
@@ -437,7 +503,6 @@ export default function Consult(){
 
       <Arch to="#060E1A"/>
 
-      {/* FORM + EXPECT */}
       <section className="main-section">
         <div className="main-inner">
           <div className="reveal-left">
@@ -448,14 +513,14 @@ export default function Consult(){
 
           <div className="reveal-right">
             <div className="expect-wrap">
-              <div className="expect-title">What to expect<br /><em>after you submit.</em></div>
+              <div className="expect-title">What to expect<br /><em>after you pay.</em></div>
               <div className="expect-steps">
                 {[
-                  {n:'01',t:'Your request arrives',b:"Our team reviews your message, your session type, and what you've shared. Every request is read personally."},
-                  {n:'02',t:'Confirmation within 2 days',b:'You receive an email confirming your appointment date, time, and session details. Payment link included.'},
-                  {n:'03',t:'Share your birth details',b:'Date, time and place of birth are collected privately before your session — used only for your chart.'},
-                  {n:'04',t:'Your consultation',b:'A focused, personal session. Your chart read. Your Moon understood. Your remedy path laid out clearly.'},
-                  {n:'05',t:'Your remedy document',b:'After the session, a written summary of your chart findings and personalised remedy protocol — yours to keep.'},
+                  {n:'01', t:'Payment confirmed',      b:'Your ₹299 payment is processed securely via Razorpay. You receive a payment confirmation immediately.'},
+                  {n:'02', t:'Varad reviews your request', b:'Varad personally reads your message and session type before confirming your slot.'},
+                  {n:'03', t:'Appointment confirmed',  b:'You receive an email within 2 working days with your appointment date, time, and session details.'},
+                  {n:'04', t:'Share your birth details', b:'Date, time and place of birth are collected privately before your session — used only for your chart.'},
+                  {n:'05', t:'Your consultation',      b:'A focused, personal session. Your chart read. Your Moon understood. Your remedy path laid out clearly.'},
                 ].map((s,i)=>(
                   <div className="estep" key={i}>
                     <div className="estep-num">{s.n}</div>
