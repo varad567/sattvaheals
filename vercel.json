@@ -1,13 +1,5 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.sattvaheals.in" }],
-      "destination": "https://sattvaheals.in/$1",
-      "permanent": true
-    }
   ]
 }
