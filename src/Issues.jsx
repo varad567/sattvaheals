@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
 
@@ -243,6 +244,11 @@ export default function Issues() {
 
   return (
     <>
+      <Helmet>
+        <title>What We Treat — Anxiety, Stress, Fear & More | Sattva Heals</title>
+        <meta name="description" content="Sattva addresses 6 concerns through Ayurveda and Jyotish — Anxiety, Aggression, Overthinking, Stress, Low Mood, and Fear. Understand your concern through the IKS lens." />
+        <link rel="canonical" href="https://sattvaheals.in/issues" />
+      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>

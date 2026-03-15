@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from './supabase';
 
@@ -480,6 +481,11 @@ export default function IssueDetail() {
 
   return (
     <>
+      <Helmet>
+        <title>{issue.name} ({issue.sk}) — Ayurvedic & Jyotish Understanding | Sattva Heals</title>
+        <meta name="description" content={`${issue.tagline} Understand ${issue.name.toLowerCase()} through Ayurveda, Jyotish, and the Indian Knowledge System. Free assessment at Sattva Heals.`} />
+        <link rel="canonical" href={`https://sattvaheals.in/issues/${issue.slug}`} />
+      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
 
@@ -777,6 +778,11 @@ export default function BirthChart() {
 
   return (
     <>
+      <Helmet>
+        <title>Free Vedic Kundali Calculator — Jyotish Birth Chart | Sattva Heals</title>
+        <meta name="description" content="Generate your free Vedic birth chart online. Get your Lagna, all 9 planets, Moon Nakshatra, and Vimshottari Dasha sequence — calculated using the Lahiri ayanamsha." />
+        <link rel="canonical" href="https://sattvaheals.in/kundali" />
+      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>

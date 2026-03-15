@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from 'react-helmet-async';
 import { supabase } from './supabase'
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');`;
 
@@ -366,6 +367,11 @@ export default function Consult(){
   useReveal();
   return(
     <>
+      <Helmet>
+        <title>Book a Jyotish Consultation | Sattva Heals</title>
+        <meta name="description" content="Book a 1-on-1 Jyotish consultation with Varad Bidwai — 2+ years of practice, 10,000+ consultations. Your birth chart, your Dasha, your specific struggles — read and answered." />
+        <link rel="canonical" href="https://sattvaheals.in/consult" />
+      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>

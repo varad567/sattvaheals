@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Helmet } from 'react-helmet-async';
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');`;
 
@@ -451,6 +452,11 @@ export default function HowItWorks(){
 
   return(
     <>
+      <Helmet>
+        <title>How Sattva Works — Ayurveda, Jyotish & Mantra | Sattva Heals</title>
+        <meta name="description" content="Sattva uses three phases — Prakriti assessment, personalised practice, and 1-on-1 Jyotish consultation — to bring 5,000 years of Indian wisdom to your mental wellness." />
+        <link rel="canonical" href="https://sattvaheals.in/how-it-works" />
+      </Helmet>
       <style>{FONTS+css}</style>
       <Cursor/>
       <StarField/>

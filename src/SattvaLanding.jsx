@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Helmet } from 'react-helmet-async';
 import { supabase } from './supabase';
 
 // Safe navigation — works with or without React Router
@@ -780,6 +781,13 @@ export default function SattvaLanding() {
 
   return (
     <>
+      <Helmet>
+        <title>Sattva Heals — Ancient Indian Wisdom for the Modern Mind</title>
+        <meta name="description" content="Personalised mental wellness rooted in Ayurveda, Jyotish, and Mantra. Understand your Prakriti, your concern, and your path — in 3 minutes. Free." />
+        <meta property="og:title" content="Sattva Heals — Ancient Indian Wisdom for the Modern Mind" />
+        <meta property="og:description" content="Personalised mental wellness rooted in Ayurveda, Jyotish, and Mantra. Free Prakriti assessment." />
+        <link rel="canonical" href="https://sattvaheals.in/" />
+      </Helmet>
       <style>{FONTS + css}</style>
       <Cursor />
       <StarField />

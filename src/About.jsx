@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Helmet } from 'react-helmet-async';
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Outfit:wght@200;300;400;500;600&family=Noto+Serif+Devanagari:wght@300;400;500;600&display=swap');`;
 
@@ -336,6 +337,11 @@ export default function About() {
 
   return (
     <>
+      <Helmet>
+        <title>About Sattva Heals — IKS Mental Wellness Platform</title>
+        <meta name="description" content="Sattva Heals is built by practicing Jyotishis to bridge the gap between India's ancient healing intelligence and the people who need it most." />
+        <link rel="canonical" href="https://sattvaheals.in/about" />
+      </Helmet>
       <style>{FONTS + css}</style>
       <Cursor />
       <StarField />
