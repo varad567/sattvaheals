@@ -20,9 +20,9 @@ const css = `
   .cursor-ring{width:28px;height:28px;border:1px solid rgba(168,204,224,0.3);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left 0.14s ease-out,top 0.14s ease-out;}
 
   .bp-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,14,26,0.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(168,204,224,0.06);}
-  .bp-nav-brand{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--pearl);letter-spacing:4px;text-transform:uppercase;cursor:pointer;}
+  .bp-nav-brand{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--pearl);letter-spacing:4px;text-transform:uppercase;cursor:pointer;line-height:1;display:flex;align-items:center;}
   .bp-nav-brand span{color:var(--gold);}
-  .bp-nav-back{background:none;border:none;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--pearl-dim);cursor:pointer;display:flex;align-items:center;gap:10px;transition:color 0.2s;font-family:'Outfit',sans-serif;}
+  .bp-nav-back{background:none;border:none;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--pearl-dim);cursor:pointer;display:flex;align-items:center;gap:10px;transition:color 0.2s;font-family:'Outfit',sans-serif;line-height:1;}
   .bp-nav-back::before{content:'';width:20px;height:1px;background:currentColor;transition:width 0.2s;}
   .bp-nav-back:hover{color:var(--moon);}
   .bp-nav-back:hover::before{width:28px;}

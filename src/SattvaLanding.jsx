@@ -85,7 +85,7 @@ const css = `
     height: 60px;
     box-shadow: 0 4px 32px rgba(0,0,0,0.3);
   }
-  .nav-brand { text-decoration: none; display: flex; flex-direction: column; justify-content: center; }
+  .nav-brand { text-decoration: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
   .nav-brand-main {
     font-family: 'Cormorant Garamond', serif;
     font-size: 22px; font-weight: 600;
@@ -95,9 +95,9 @@ const css = `
   }
   .nav-brand-main span { color: var(--gold); }
   .nav-brand-sub {
-    font-size: 9px; letter-spacing: 3px;
+    font-size: 8px; letter-spacing: 2px;
     color: var(--moon-dim); text-transform: uppercase;
-    font-weight: 400; margin-top: 4px; display: block;
+    font-weight: 400; margin-top: 2px; display: block;
   }
   .nav-links { display:flex; gap:36px; list-style:none; align-items: center; }
   .nav-links a {
@@ -116,6 +116,7 @@ const css = `
     letter-spacing: 2px; text-transform: uppercase;
     cursor: pointer; transition: all 0.3s; border-radius: 1px;
     white-space: nowrap;
+    display: flex; align-items: center;
   }
   .nav-cta:hover {
     background: rgba(168,204,224,0.08);
@@ -138,6 +139,7 @@ const css = `
     font-size: 10px; letter-spacing: 2px;
     text-transform: uppercase; cursor: pointer;
     transition: all 0.3s; border-radius: 1px;
+    display: flex; align-items: center;
   }
   .nav-signout:hover {
     border-color: rgba(224,112,112,0.4);
